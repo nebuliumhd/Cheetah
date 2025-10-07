@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap');
+
+.Main-Page {
+  background-color: #00ff80;
+  padding: 20px;
+  text-align: center;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 24px;
+}

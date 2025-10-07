@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap');
+
+.delete-page{
+  font-family: 'Fredoka', sans-serif;
+  align-items: center;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 400px;
+  margin-top: 50px;
+  padding-bottom: 105%;
+  padding-top: 25px;
+  padding-bottom: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgb(233, 0, 0);
+  background: #00ffaa;
+}
+
+.custom-button{
+  font-family: 'Fredoka', sans-serif;  
+  font-size: 18px;                    
+  color: rgb(255, 255, 255);                       
+  background-color: #790cd3;          
+  border: none;                       
+  border-radius: 12px;                
+  padding: 12px 24px;                 
+  cursor: pointer;                    
+  transition: background-color 0.3s ease;
+  margin:4%;
+}
+
+.custom-button:hover {
+  background-color: #000000f3;
+}
+
+.NAME,
+.PASS{
+  font-family: 'Fredoka', sans-serif;
+  background: rgb(255, 255, 255);
+  border-radius: 12px;
+}
+
+.NAME::placeholder,
+.PASS::placeholder{
+  color: #000000;
+  font-style: bold;
+  text-align: center;
+}
