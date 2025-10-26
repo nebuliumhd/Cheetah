@@ -1,24 +1,29 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Landing from './Pages/Landing';
+import Login from './Pages/Login';
+import Register from './Pages/Register';
+import LandingNav from './Components/LandingNav';
+// import other components as needed
 
 function App() {
+  const location = useLocation();
+
+  const hideNavbarOnPaths = ['/main', '/update', '/delete', '/register', '/login'];
+  const shouldShowNavbar = !hideNavbarOnPaths.includes(location.pathname);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+    {shouldShowNavbar && <LandingNav />}
+
+    
+      <Routes>
+        <Route path="/landing" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        {/* Add other routes here */}
+        <Route path="*" element={<Navigate to="/landing" />} />
+      </Routes>
+    </>
+
   );
 }
 

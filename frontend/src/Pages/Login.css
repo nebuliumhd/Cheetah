@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap');
+
+.Login-Page{
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  margin: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgb(233, 0, 0);
+  background: #790cd3;
+  font-family: 'Fredoka', sans-serif;
+  text-align: center;
+  color: white;
+  display: center;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+
+.login-form2 {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin: 1rem;
+  padding-right: 1rem;
+  width: auto;
+}
+
+.custom-button1{
+  font-family: 'Fredoka', sans-serif;  
+  font-size: 24px;                    
+  color: white;                       
+  background-color: #000000;          
+  border: none;                       
+  border-radius: 12px;                
+  padding: 1rem;                 
+  cursor: pointer;                    
+  transition: background-color 0.3s ease;
+  margin-right: 1rem;
+  margin-top: 1rem;
+  width: 106%;
+}
+
+.custom-button1:hover {
+  background-color: #f700fff3;
+  color: black;
+}
+
+.custom-button1:active {
+  background-color: #8e3e8a;
+  box-shadow: 0 5px #000000;
+  transform: translateY(4px);
+}
+
+
+
+.login-background {
+  background-color: #4b0430ff;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.Login {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.Register-Redirect,
+.Register-Link{
+  margin-top: 1rem;
+  color: white;
+}
+
+.form-label {
+  font-size: 1.1rem;
+  text-align: left;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.form-input {
+  font-family: 'Fredoka', sans-serif;
+  background: #fff;
+  border-radius: 12px;
+  border: 3px solid #000000;
+  font-size: 1rem;
+  width: 100%;
+  position: relative;
+}
