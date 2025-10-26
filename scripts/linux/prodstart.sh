@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 # Build the frontend
 echo "Building frontend..."
-cd ../frontend
+cd ../../frontend
 npm install
 npm run build
 
