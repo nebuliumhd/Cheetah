@@ -49,16 +49,15 @@ const RegisterUser = () => {
         password: formData.passWord
       };
 
-      const response = await fetch('http://localhost:5000/api/users/register', {
+      const res = await fetch('http://localhost:5000/api/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
-      console.log(payload);
-
-      if (!response.ok) {
+      const data = await res.json();
+      // console.log(payload);
+      if (!res.ok) {
         throw new Error(data.message || 'Registration failed.');
       }
 
