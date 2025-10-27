@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate(); 
-  const { isLoggedIn,login } = useAuth();
+  const { isLoggedIn, login } = useAuth();
   
   const [formData, setFormData] = useState({
     userName: '',
@@ -13,13 +13,17 @@ const Login = () => {
   });
 
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   if (isLoggedIn) {
     return <Navigate to="/main" replace />;
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -27,30 +31,23 @@ const Login = () => {
   setError('');
 
   try {
-    const res = await fetch('http://localhost:3001/api/users/login', {
+    const payload = {
+      username: formData.userName,
+      password: formData.passWord
+    };
+
+    const res = await fetch('http://localhost:5000/api/users/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || 'Login failed.');
+      headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+      
+      setSuccess('Login successful! Redirecting to your profile!');
+      setTimeout(() => navigate('/landing'), 2000);
+    } catch (err) {
+      setError(err.message || 'Login failed.');
     }
-
-    const data = await res.json();
-    console.log("Login success:", data);
-
-    login(data.user.userName);
-    navigate('/main');
-
-  } catch (err) {
-    console.error("Login error:", err.message);
-    setError(err.message);
-  }
-};
+  };
 
   return (
   <div className="login-background">
@@ -64,7 +61,6 @@ const Login = () => {
           id="userName"
           name="userName"
           className='form-input'
-          value={formData.userName}
           onChange={handleChange}
           required
         />

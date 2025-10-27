@@ -42,24 +42,24 @@ const RegisterUser = () => {
 
     try {
       const payload = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        username: formData.userName,
         email: formData.email,
-        userName: formData.userName,
-        passWord: formData.passWord
+        password: formData.passWord
       };
 
-      const response = await fetch('http://localhost:3001/api/users/register', {
+      const response = await fetch('http://localhost:5000/api/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
+      const data = await response.json();
+      console.log(payload);
+
       if (!response.ok) {
-        // Try to extract error message from server
-        const data = await response.json().catch(() => ({}));
-        const message = data.message || 'Registration failed.';
-        throw new Error(message);
+        throw new Error(data.message || 'Registration failed.');
       }
 
       setSuccess('Registration successful! Redirecting to login...');
@@ -68,6 +68,7 @@ const RegisterUser = () => {
       setError(err.message || 'Registration failed.');
     }
   };
+
 
   return (
     <div className="page-background">
@@ -83,11 +84,11 @@ const RegisterUser = () => {
   <label className="form-label">Last Name</label>
   <input name="lastName" className="form-input" value={formData.lastName} onChange={handleChange} required />
 
-  <label className="form-label">Email</label>
-  <input name="email" className="form-input" type="email" value={formData.email} onChange={handleChange} required />
-
   <label className="form-label">Username</label>
   <input name="userName" className="form-input" value={formData.userName} onChange={handleChange} required />
+
+  <label className="form-label">Email</label>
+  <input name="email" className="form-input" type="email" value={formData.email} onChange={handleChange} required />
 
   <label className="form-label">Password</label>
   <input name="passWord" className="form-input" type="password" value={formData.passWord} onChange={handleChange} required />
