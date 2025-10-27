@@ -6,16 +6,16 @@ set BACKEND_PATH=..\..\backend
 set FRONTEND_PATH=..\..\frontend
 
 :: Start backend
-start "Backend Dev" cmd /c "cd /d %BACKEND_PATH% && npm install && npm run dev"
+start "Backend Tests" cmd /c "cd /d %BACKEND_PATH% && npm install && npm test"
 timeout /t 2 /nobreak >nul
 
 :: Start frontend
-start "Frontend Dev" cmd /c "cd /d %FRONTEND_PATH% && npm install && npm start"
+start "Frontend Tests" cmd /c "cd /d %FRONTEND_PATH% && npm install && npm test"
 timeout /t 2 /nobreak >nul
 
 :: Wait 
 echo.
-echo Press any key to stop frontend and backend...
+echo Press any key to finish...
 pause >nul
 
 :: Kill all npm processes and child processes
