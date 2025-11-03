@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import LandingPage from './Landing.js';
+import LandingPage from '../src/Pages/Landing.js';
 
 beforeEach(() => {
   render(

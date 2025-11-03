@@ -1,34 +1,76 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return sessionStorage.getItem('isLoggedIn') === 'true';
-  });
+  const [username, setUsername] = useState('');
+  const [userId, setUserId] = useState('');
+  const [loading, setLoading] = useState(true); // Add loading state
 
-  const [username, setUsername] = useState(() => {
-    return sessionStorage.getItem('username') || '';
-  });
+  // Check authentication status on mount
+  useEffect(() => {
+    const verifyAuth = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-  const login = (name) => {
-    setIsLoggedIn(true);
+      try {
+        // Verify token with backend
+        const res = await fetch('http://localhost:5000/api/auth/verify', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log("Data from verify:", data);
+          setUsername(data.username);
+          setUserId(data.userId);
+          sessionStorage.setItem('username', data.username);
+          sessionStorage.setItem('userId', data.userId);
+        } else {
+          // Token invalid - clear everything
+          logout();
+        }
+      } catch (err) {
+        console.error('Auth verification failed:', err);
+        logout();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifyAuth();
+  }, []);
+
+  const login = (name, id, token) => {
     setUsername(name);
-    sessionStorage.setItem('isLoggedIn', 'true');
+    setUserId(id);
     sessionStorage.setItem('username', name);
+    sessionStorage.setItem('userId', id);
+    localStorage.setItem('token', token);
   };
 
   const logout = () => {
-    setIsLoggedIn(false);
     setUsername('');
-    sessionStorage.removeItem('isLoggedIn');
-    sessionStorage.removeItem('username');
+    setUserId('');
+    sessionStorage.clear();
+    localStorage.clear();
   };
 
+  // Derived values
+  const isLoggedIn = Boolean(userId);
+  const user = userId ? { id: userId, username } : null;
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, username, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, username, userId, user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
-export const useAuth = () => useContext(AuthContext); 
+
+export const useAuth = () => useContext(AuthContext);

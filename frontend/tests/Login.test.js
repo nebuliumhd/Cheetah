@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.js';
-import Login from './Login.js';
+import { useAuth } from '../src/context/AuthContext.js';
+import Login from '../src/Pages/Login.js';
 
 // Mock "useAuth"
 jest.mock('../context/AuthContext.js', () => ({
