@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom'; 
 import "./Login.css";
 import { useAuth } from '../context/AuthContext';
@@ -13,10 +13,10 @@ const Login = () => {
   });
 
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [setSuccess] = useState('');
 
   if (isLoggedIn) {
-    return <Navigate to="/main" replace />;
+    return <Navigate to="/profile" replace />;
   };
 
   const handleChange = (e) => {
@@ -27,23 +27,33 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
 
-  try {
-    const payload = {
-      username: formData.userName,
-      password: formData.passWord
-    };
+    try {
+      const payload = {
+        username: formData.userName,
+        password: formData.passWord
+      };
 
-    const res = await fetch('http://localhost:5000/api/users/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      const API_BASE = process.env.REACT_APP_API_BASE || '';
+      const res = await fetch(`${API_BASE}/api/users/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload),
       });
-      
+
+      const data = await res.json();
+
+       if (!res.ok) {
+      throw new Error(data.message || 'Invalid credentials');
+    }
+
+
+      // TODO: Check for result returns?
+      login(data.user);  
       setSuccess('Login successful! Redirecting to your profile!');
-      setTimeout(() => navigate('/landing'), 2000);
+      setTimeout(() => navigate('/profile'), 2000);
     } catch (err) {
       setError(err.message || 'Login failed.');
     }
