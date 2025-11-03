@@ -56,10 +56,9 @@ const RegisterUser = () => {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
-      console.log(payload);
-
-      if (!response.ok) {
+      const data = await res.json();
+      // console.log(payload);
+      if (!res.ok) {
         throw new Error(data.message || 'Registration failed.');
       }
 
@@ -79,23 +78,23 @@ const RegisterUser = () => {
         {success && <p style={{ color: 'green', fontWeight: 'bold' }}>{success}</p>}
 
         <form className="register-form" onSubmit={handleSubmit}>
-  <label className="form-label">First Name</label>
-  <input name="firstName" className="form-input" value={formData.firstName} onChange={handleChange} required />
+  <label className="form-label" htmlFor="firstName">First Name</label>
+  <input id="firstName" name="firstName" className="form-input" value={formData.firstName} onChange={handleChange} required />
 
-  <label className="form-label">Last Name</label>
-  <input name="lastName" className="form-input" value={formData.lastName} onChange={handleChange} required />
+  <label className="form-label" htmlFor="lastName">Last Name</label>
+  <input id="lastName" name="lastName" className="form-input" value={formData.lastName} onChange={handleChange} required />
 
-  <label className="form-label">Username</label>
-  <input name="userName" className="form-input" value={formData.userName} onChange={handleChange} required />
+  <label className="form-label" htmlFor="userName">Username</label>
+  <input id="userName" name="userName" className="form-input" value={formData.userName} onChange={handleChange} required />
 
-  <label className="form-label">Email</label>
-  <input name="email" className="form-input" type="email" value={formData.email} onChange={handleChange} required />
+  <label className="form-label" htmlFor="email">Email</label>
+  <input id="email" name="email" type="email" className="form-input" value={formData.email} onChange={handleChange} required />
 
-  <label className="form-label">Password</label>
-  <input name="passWord" className="form-input" type="password" value={formData.passWord} onChange={handleChange} required />
+  <label className="form-label" htmlFor="passWord">Password</label>
+  <input id="passWord" name="passWord" type="password" className="form-input" value={formData.passWord} onChange={handleChange} required />
 
-  <label className="form-label">Confirm Password</label>
-  <input name="confirmPassword" className="form-input" type="password" value={formData.confirmPassword} onChange={handleChange} required />
+  <label className="form-label" htmlFor="confirmPassword">Confirm Password</label>
+  <input id="confirmPassword" name="confirmPassword" type="password" className="form-input" value={formData.confirmPassword} onChange={handleChange} required />
 
   <button className="custom-button" type="submit">Register</button>
 </form>

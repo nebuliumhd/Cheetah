@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { pool }  from "../db.js";
+import { db }  from "../db.js";
 
 // REGISTER USER
 export const registerUser = async (req, res) => {
@@ -18,7 +18,7 @@ export const registerUser = async (req, res) => {
     }
 
     // Check for duplicates
-    const [existingUsers] = await pool.query(
+    const [existingUsers] = await db.query(
       "SELECT * FROM users WHERE email = ? OR username = ?",
       [email, username]
     );
@@ -31,7 +31,7 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Insert new user
-    await pool.query(
+    await db.query(
       "INSERT INTO users (first_name, last_name, username, email, password_hash) VALUES (?, ?, ?, ?, ?)",
       [first_name, last_name, username, email, hashedPassword]
     );
@@ -49,7 +49,7 @@ export const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
+    const [users] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
     if (users.length === 0) {
       return res.status(401).json({ message: "Invalid username.", body: username });
     }
@@ -83,14 +83,14 @@ export const deleteUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
+    const [users] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
     if (users.length === 0) return res.status(404).json({ message: "User not found." });
 
     const user = users[0];
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) return res.status(401).json({ message: "Incorrect password." });
 
-    await pool.query("DELETE FROM users WHERE id = ?", [user.id]);
+    await db.query("DELETE FROM users WHERE id = ?", [user.id]);
     res.status(200).json({ message: "Account successfully deleted." });
 
   } catch (err) {
@@ -104,19 +104,19 @@ export const updateUser = async (req, res) => {
   try {
     const { id, first_name, last_name, username, email, password } = req.body;
 
-    const [users] = await pool.query("SELECT * FROM users WHERE id = ?", [id]);
+    const [users] = await db.query("SELECT * FROM users WHERE id = ?", [id]);
     if (users.length === 0) return res.status(404).json({ message: "User not found." });
 
     const user = users[0];
 
     // Check username/email uniqueness
     if (username && username !== user.username) {
-      const [checkUser] = await pool.query("SELECT * FROM users WHERE username = ?", [username]);
+      const [checkUser] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
       if (checkUser.length > 0) return res.status(400).json({ message: "Username already in use." });
     }
 
     if (email && email !== user.email) {
-      const [checkEmail] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+      const [checkEmail] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
       if (checkEmail.length > 0) return res.status(400).json({ message: "Email already in use." });
     }
 
@@ -124,7 +124,7 @@ export const updateUser = async (req, res) => {
     const newPasswordHash = password ? await bcrypt.hash(password, 12) : user.password_hash;
 
     //Update database with updated values
-    await pool.query(
+    await db.query(
       `UPDATE users SET first_name=?, last_name=?, username=?, email=?, password_hash=? WHERE id=?`,
       [
         first_name || user.first_name,
@@ -149,7 +149,7 @@ export const updateUser = async (req, res) => {
 export const getUserByUsername = async (req, res) => {
   try {
     const { username } = req.params;
-    const [users] = await pool.query(
+    const [users] = await db.query(
       "SELECT id, first_name, last_name, username, email FROM users WHERE userName = ?",
       [username]
     );
@@ -167,7 +167,7 @@ export const getUserByUsername = async (req, res) => {
 //Get all users in database
 export const getAllUsers = async (req, res) => {
   try {
-    const [results] = await pool.query("SELECT * FROM users");
+    const [results] = await db.query("SELECT * FROM users");
     res.status(200).json(results);
   } catch (err) {
     console.error("Database error:", err);
