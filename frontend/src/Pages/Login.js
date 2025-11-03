@@ -60,41 +60,41 @@ const Login = () => {
   };
 
   return (
-  <div className="login-background">
-    <div className='Login-Page'>
-      <h2 className='Login'>Login</h2>
-      {error && <p style={{ color: 'black', fontWeight: 'bold' }}>{error}</p>}
+    <div className="login-background">
+      <div className='Login-Page'>
+        <h2 className='Login'>Login</h2>
+        {error && <p style={{ color: 'black', fontWeight: 'bold' }}>{error}</p>}
 
-      <form className='login-form2' onSubmit={handleSubmit}>
-        <label htmlFor="userName" className="form-label">Username</label>
-        <input
-          id="userName"
-          name="userName"
-          className='form-input'
-          onChange={handleChange}
-          required
-        />
+        <form className='login-form2' onSubmit={handleSubmit}>
+          <label htmlFor="userName" className="form-label">Username</label>
+          <input
+            id="userName"
+            name="userName"
+            className='form-input'
+            onChange={handleChange}
+            required
+          />
 
-        <label htmlFor="passWord" className="form-label">Password</label>
-        <input
-          id="passWord"
-          name="passWord"
-          className='form-input'
-          type="password"
-          value={formData.passWord}
-          onChange={handleChange}
-          required
-        />
+          <label htmlFor="passWord" className="form-label">Password</label>
+          <input
+            id="passWord"
+            name="passWord"
+            className='form-input'
+            type="password"
+            value={formData.passWord}
+            onChange={handleChange}
+            required
+          />
 
-        <button className='custom-button1' type="submit">Login</button>
-      </form>
+          <button className='custom-button1' type="submit">Login</button>
+        </form>
 
-      <p className='Register-Redirect'>
-        Don't have an account? <Link to="/register" className='Register-Link'>Register here</Link>
-      </p>
+        <p className='Register-Redirect'>
+          Don't have an account? <Link to="/register" className='Register-Link'>Register here</Link>
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default Login;
