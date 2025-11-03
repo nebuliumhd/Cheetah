@@ -49,7 +49,8 @@ const RegisterUser = () => {
         password: formData.passWord
       };
 
-      const response = await fetch('http://localhost:5000/api/users/register', {
+      const API_BASE = process.env.REACT_APP_API_BASE || '';
+      const response = await fetch(`${API_BASE}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

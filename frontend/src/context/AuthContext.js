@@ -1,34 +1,35 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useContext, useState } from 'react';
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return sessionStorage.getItem('isLoggedIn') === 'true';
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    () => localStorage.getItem('isLoggedIn') === 'true'
+  );
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  const [username, setUsername] = useState(() => {
-    return sessionStorage.getItem('username') || '';
-  });
-
-  const login = (name) => {
+  const login = (userData) => {
     setIsLoggedIn(true);
-    setUsername(name);
-    sessionStorage.setItem('isLoggedIn', 'true');
-    sessionStorage.setItem('username', name);
+    setUser(userData);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
     setIsLoggedIn(false);
-    setUsername('');
-    sessionStorage.removeItem('isLoggedIn');
-    sessionStorage.removeItem('username');
+    setUser(null);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('user');
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, username, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
-export const useAuth = () => useContext(AuthContext); 
+
+export const useAuth = () => useContext(AuthContext);
