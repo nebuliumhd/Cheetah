@@ -6,6 +6,8 @@ export const AuthProvider = ({ children }) => {
   const [username, setUsername] = useState('');
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(true); // Add loading state
+  
+  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
   // Check authentication status on mount
   useEffect(() => {
@@ -19,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
       try {
         // Verify token with backend
-        const res = await fetch('http://localhost:5000/api/auth/verify', {
+        const res = await fetch(`${API_BASE}/api/auth/verify`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

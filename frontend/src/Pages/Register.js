@@ -6,6 +6,8 @@ import './Register.css';
 const RegisterUser = () => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
+  
+  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -49,7 +51,7 @@ const RegisterUser = () => {
         password: formData.passWord
       };
 
-      const res = await fetch('http://localhost:5000/api/users/register', {
+      const res = await fetch(`${API_BASE}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

@@ -8,13 +8,14 @@ export default function ConversationList({ onSelect }) {
   const [loadingConversations, setLoadingConversations] = useState(false);
 
   const token = localStorage.getItem("token");
+  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
   // Load all conversations initially
   useEffect(() => {
     const loadConversations = async () => {
       try {
         setLoadingConversations(true);
-        const res = await fetch("http://localhost:5000/api/chat", {
+        const res = await fetch(`${API_BASE}/api/chat`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -42,7 +43,7 @@ export default function ConversationList({ onSelect }) {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/chat/search-users?q=${encodeURIComponent(
+        `${API_BASE}/api/chat/search-users?q=${encodeURIComponent(
           inputValue
         )}`,
         {
@@ -79,7 +80,7 @@ export default function ConversationList({ onSelect }) {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/chat/start-by-username",
+        `${API_BASE}/api/chat/start-by-username`,
         {
           method: "POST",
           headers: {
@@ -117,9 +118,8 @@ export default function ConversationList({ onSelect }) {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/chat/conversation/${convId}`,
+        `${API_BASE}/api/chat/conversation/${convId}`,
         {
-          // Changed from /api/chat/${convId}
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",

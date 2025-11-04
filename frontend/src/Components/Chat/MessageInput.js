@@ -5,7 +5,9 @@ export default function MessageInput({ otherUsername, onMessageSent }) {
   const [selectedImages, setSelectedImages] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [showError, setShowError] = useState(false);
+  
   const fileInputRef = useRef(null);
+  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
   useEffect(() => {
     if (errorMessage) {
@@ -77,7 +79,6 @@ export default function MessageInput({ otherUsername, onMessageSent }) {
 
     try {
       const token = localStorage.getItem("token");
-
       // Send all images one by one
       for (const imageObj of selectedImages) {
         const formData = new FormData();
@@ -87,7 +88,7 @@ export default function MessageInput({ otherUsername, onMessageSent }) {
         formData.append("image", imageObj.file);
 
         const imageRes = await fetch(
-          "http://localhost:5000/api/chat/send-image-by-username",
+          `${API_BASE}/api/chat/send-image-by-username`,
           { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData }
         );
 
@@ -100,7 +101,7 @@ export default function MessageInput({ otherUsername, onMessageSent }) {
 
       // Send text message after all images if there is text
       if (text.trim()) {
-        const textRes = await fetch("http://localhost:5000/api/chat/send-by-username", {
+        const textRes = await fetch(`${API_BASE}/api/chat/send-by-username`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({

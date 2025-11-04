@@ -11,6 +11,7 @@ export default function ChatWindow({ otherUsername, refreshTrigger }) {
   const messageRefs = useRef({});
 
   const currentUserId = userId || user?.id;
+  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
   const parseMessage = (msg) => {
     if (!msg) return "";
@@ -56,10 +57,9 @@ export default function ChatWindow({ otherUsername, refreshTrigger }) {
 
   const markMessageAsRead = useCallback(async (messageId) => {
     const token = localStorage.getItem("token");
-
     try {
       await fetch(
-        `http://localhost:5000/api/chat/mark-message-read/${messageId}`,
+        `${API_BASE}/api/chat/mark-message-read/${messageId}`,
         {
           method: "PUT",
           headers: {
@@ -136,10 +136,9 @@ export default function ChatWindow({ otherUsername, refreshTrigger }) {
       if (!otherUsername || !isActive) return;
 
       const token = localStorage.getItem("token");
-
       try {
         const res = await fetch(
-          `http://localhost:5000/api/chat/messages-by-username/${otherUsername}`,
+          `${API_BASE}/api/chat/messages-by-username/${otherUsername}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -291,9 +290,7 @@ export default function ChatWindow({ otherUsername, refreshTrigger }) {
                     // Image message
                     <div style={{ display: "inline-block", maxWidth: "70%" }}>
                       <img
-                        src={`http://localhost:5000${parseMessage(
-                          msg.ciphertext
-                        )}`}
+                        src={`${API_BASE}${parseMessage(msg.ciphertext)}`}
                         alt="Sent image"
                         style={{
                           maxWidth: "300px",

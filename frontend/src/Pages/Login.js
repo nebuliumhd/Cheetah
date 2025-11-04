@@ -5,14 +5,14 @@ import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const { isLoggedIn, login } = useAuth();
-
   const [formData, setFormData] = useState({
     userName: "",
     passWord: "",
   });
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
   if (isLoggedIn) {
     return <Navigate to="/main" replace />;
@@ -35,7 +35,7 @@ const Login = () => {
         password: formData.passWord,
       };
 
-      const res = await fetch("http://localhost:5000/api/users/login", {
+      const res = await fetch(`${API_BASE}/api/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

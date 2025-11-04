@@ -99,10 +99,10 @@ export const getConversations = async (req, res) => {
   try {
     const [conversations] = await db.query(
       `SELECT c.*,
-                    IF(c.user_a = ?, c.user_b, c.user_a) AS other_user_id,
-                    u.username AS other_user_username,
-                    dm.ciphertext AS last_message,
-                    dm.created_at AS last_message_time
+            IF(c.user_a = ?, c.user_b, c.user_a) AS other_user_id,
+              u.username AS other_user_username,
+              dm.ciphertext AS last_message,
+              dm.created_at AS last_message_time
              FROM conversations c
              LEFT JOIN direct_messages dm ON dm.id = (
                  SELECT id FROM direct_messages 
