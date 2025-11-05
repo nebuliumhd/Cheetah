@@ -24,3 +24,9 @@ yarn-error.log*
 Thumbs.db
 *.env
 *.env.*
+
+# SSL Certificates
+certs/
+*.pem
+*.key
+*.crt
