@@ -1,23 +1,25 @@
 import { db } from "../db.js";
 
 // Create new user
-export const createUser = (userData, callback) => {
+export const createUser = async (userData) => {
   const { firstName, lastName, email, userName, passWord } = userData;
+  const passWordHash = await bcrypt.hash(passWord, 10);
   const query = `
-    INSERT INTO users (firstName, lastName, email, userName, passWord)
+    INSERT INTO users (first_name, last_name, email, username, password_hash)
     VALUES (?, ?, ?, ?, ?)
   `;
-  db.query(query, [firstName, lastName, email, userName, passWord], callback);
+  const [result] = db.query(query, [firstName, lastName, email, userName, passWordHash]);
+  return result;
 };
 
 // Get user by username
-export const findUserByUsername = (userName, callback) => {
-  const query = "SELECT * FROM users WHERE userName = ?";
-  db.query(query, [userName], callback);
+export const findUserByUsername = async (userName) => {
+  const [rows] = await db.query("SELECT * FROM users WHERE user_name = ?", [userName]);
+  return rows[0];
 };
 
 // Get user by email
-export const findUserByEmail = (email, callback) => {
-  const query = "SELECT * FROM users WHERE email = ?";
-  db.query(query, [email], callback);
+export const findUserByEmail = async (email) => {
+  const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+  return rows[0];
 };

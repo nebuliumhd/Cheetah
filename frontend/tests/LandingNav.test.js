@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Navbar from './LandingNav.js';
+import Navbar from '../src/Components/LandingNav.js';
 
 beforeEach(() => {
   render(
