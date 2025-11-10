@@ -4,7 +4,6 @@ import {
     createPost,
     getPostById,
     deletePost,
-    deletePost,
     createComment,
     deleteComment
 } from '../controllers/feed-controller.js'

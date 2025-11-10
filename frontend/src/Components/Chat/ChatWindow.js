@@ -1,8 +1,8 @@
-import { useEffect, useState, useContext, useRef, useCallback } from "react";
-import { AuthContext } from "../../context/AuthContext";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ChatWindow({ otherUsername, refreshTrigger }) {
-  const { user, userId } = useContext(AuthContext);
+  const { user, userId } = useAuth();
   const [messages, setMessages] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [firstUnreadIndex, setFirstUnreadIndex] = useState(null);
