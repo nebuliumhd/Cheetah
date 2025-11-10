@@ -15,13 +15,13 @@ async function findUserByUsername(username) {
 }
 
 export const searchForUsers = async (req, res) => {
-  const { q } = req.query;
-
-  if (!q || q.trim() === "") {
-    return res.status(400).json({ error: "Query parameter 'q' is required" });
-  }
-
   try {
+    const { q } = req.query;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ error: "Query parameter 'q' is required" });
+    }
+
     const searchTerm = `%${q.trim()}%`;
     const [rows] = await db.query(
       `SELECT id, username 
@@ -38,22 +38,22 @@ export const searchForUsers = async (req, res) => {
     res.json({ users });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to search for users" });
   }
 };
 
 // Send message to another user by userId
 export const sendMessage = async (req, res) => {
-  const senderId = req.user.id;
-  const { recipientId, message, messageType = "text" } = req.body;
-
-  if (!recipientId || !message) {
-    return res
-      .status(400)
-      .json({ error: "Recipient and message are required" });
-  }
-
   try {
+    const senderId = req.user.id;
+    const { recipientId, message, messageType = "text" } = req.body;
+
+    if (!recipientId || !message) {
+      return res
+        .status(400)
+        .json({ error: "Recipient and message are required" });
+    }
+
     const [conversation] = await db.query(
       `SELECT *
         FROM conversations
@@ -88,15 +88,15 @@ export const sendMessage = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to send message" });
   }
 };
 
 // Get all conversations for logged-in user
 export const getConversations = async (req, res) => {
-  const userId = req.user.id;
-
   try {
+    const userId = req.user.id;
+
     const [conversations] = await db.query(
       `SELECT c.*,
             IF(c.user_a = ?, c.user_b, c.user_a) AS other_user_id,
@@ -118,22 +118,22 @@ export const getConversations = async (req, res) => {
     res.json({ conversations });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to get conversation list" });
   }
 };
 
 // Mark a single message as read
 export const markMessageAsRead = async (req, res) => {
-  const { messageId } = req.params;
-  const userId = req.user.id;
-
   try {
+    const { messageId } = req.params;
+    const userId = req.user.id;
+
     // Verify the message is sent TO the current user (not sent BY them)
     const [message] = await db.query(
       `SELECT dm.*, c.user_a, c.user_b 
-             FROM direct_messages dm
-             JOIN conversations c ON dm.conversation_id = c.id
-             WHERE dm.id = ? AND dm.sender_id != ?`,
+        FROM direct_messages dm
+        JOIN conversations c ON dm.conversation_id = c.id
+        WHERE dm.id = ? AND dm.sender_id != ?`,
       [messageId, userId]
     );
 
@@ -146,15 +146,15 @@ export const markMessageAsRead = async (req, res) => {
     // Mark as read using UTC timestamp
     await db.query(
       `UPDATE direct_messages 
-             SET read_at = UTC_TIMESTAMP() 
-             WHERE id = ? AND read_at IS NULL`,
+        SET read_at = UTC_TIMESTAMP() 
+        WHERE id = ? AND read_at IS NULL`,
       [messageId]
     );
 
     return res.status(200).json({ success: true, messageId });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Failed to mark a message as read" });
   }
 };
 
@@ -203,7 +203,7 @@ export const startConversationByUsername = async (req, res) => {
       .json({ ...rows[0], other_user_username: other.username });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Failed to start converastion for other user" });
   }
 };
 
@@ -258,8 +258,8 @@ export const sendMessageToUsername = async (req, res) => {
     // Insert the message
     const [msgResult] = await db.query(
       `INSERT INTO direct_messages
-       (conversation_id, sender_id, ciphertext, nonce, message_type, created_at)
-       VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
+        (conversation_id, sender_id, ciphertext, nonce, message_type, created_at)
+        VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
       [conversationId, senderId, message, null, messageType]
     );
 
@@ -275,7 +275,7 @@ export const sendMessageToUsername = async (req, res) => {
     console.error("Error in sendMessageToUsername:", err);
     return res
       .status(500)
-      .json({ error: err.message || "Internal server error" });
+      .json({ error: err.message || "Failed to send message to user" });
   }
 };
 
@@ -303,7 +303,7 @@ export const getMessagesByConversationId = async (req, res) => {
     res.json({ messages });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to get messages from conversation" });
   }
 };
 
@@ -347,15 +347,15 @@ export const getMessagesWithUsername = async (req, res) => {
     return res.json({ conversationId, messages });
   } catch (err) {
     console.error("Error in getMessagesWithUsername:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Failed to get messages from other user" });
   }
 };
 
 export const deleteConversation = async (req, res) => {
-  const convId = req.params.id;
-  const userId = req.user.id;
-
   try {
+    const convId = req.params.id;
+    const userId = req.user.id;
+
     const [rows] = await db.execute(
       "SELECT * FROM conversations WHERE id = ? AND (user_a = ? OR user_b = ?)",
       [convId, userId, userId]
@@ -420,7 +420,7 @@ export const deleteConversation = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Failed to delete conversation" });
   }
 };
 
@@ -447,8 +447,8 @@ export const sendImageToUsername = async (req, res) => {
     // Find or create conversation
     const [rows] = await db.query(
       `SELECT * FROM conversations
-       WHERE (user_a = ? AND user_b = ?) OR (user_a = ? AND user_b = ?)
-       LIMIT 1`,
+        WHERE (user_a = ? AND user_b = ?) OR (user_a = ? AND user_b = ?)
+        LIMIT 1`,
       [senderId, recipient.id, recipient.id, senderId]
     );
 
@@ -468,8 +468,8 @@ export const sendImageToUsername = async (req, res) => {
 
     const [msgResult] = await db.query(
       `INSERT INTO direct_messages
-       (conversation_id, sender_id, ciphertext, nonce, message_type, created_at)
-       VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
+        (conversation_id, sender_id, ciphertext, nonce, message_type, created_at)
+        VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
       [conversationId, senderId, imageUrl, null, "image"]
     );
 
@@ -484,6 +484,6 @@ export const sendImageToUsername = async (req, res) => {
     console.error("Error in sendImageToUsername:", err);
     return res
       .status(500)
-      .json({ error: err.message || "Internal server error" });
+      .json({ error: err.message || "Failed to send image to user" });
   }
 };

@@ -55,3 +55,18 @@ export const uploadImage = (req, res, next) => {
     next();
   });
 };
+
+export const uploadPostImages = (req, res, next) => {
+  upload.array("attachments", 10)(req, res, (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400),json({ error: "One or more files exceed the 5MB limit" });
+      }
+      if (err.code === "LIMIT_FILE_COUNT") {
+        return res.status(400).json({ error: "Maximum 10 images allowed per post" });
+      }
+      return res.status(400).json({ error: err.message || "File upload error" });
+    }
+    next();
+  });
+};
