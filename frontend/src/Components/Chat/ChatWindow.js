@@ -29,23 +29,34 @@ export default function ChatWindow({ otherUsername, refreshTrigger }) {
     return msg;
   };
 
-  // DO NOT TOUCH THIS FUNCTION WITHOUT TESTING!!!
+  // Accepts ISO strings, epoch ms, or Date objects.
   const formatTimestamp = (ts) => {
     if (!ts) return "";
-    const messageLocal = new Date(ts);
-    if (isNaN(messageLocal.getTime())) return "";
 
-    const messageUTC =
-      messageLocal.getTime() - messageLocal.getTimezoneOffset() * 60000;
-    const nowUTC = Date.now();
-    const diffMins = Math.floor((nowUTC - messageUTC) / 60000);
+    let epochMs;
+
+    if (typeof ts === "number") {
+      epochMs = ts;
+    } else if (typeof ts === "string") {
+      const parsed = Date.parse(ts);
+      if (isNaN(parsed)) return "";
+      epochMs = parsed;
+    } else if (ts instanceof Date) {
+      const t = ts.getTime();
+      if (isNaN(t)) return "";
+      epochMs = t;
+    } else {
+      return "";
+    }
+
+    const diffMins = Math.floor((Date.now() - epochMs) / 60000);
 
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours}h ago`;
 
-    return messageLocal.toLocaleDateString("en-US", {
+    return new Date(epochMs).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     });

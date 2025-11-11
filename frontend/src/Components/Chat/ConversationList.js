@@ -1,5 +1,51 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import AsyncSelect from "react-select/async";
+
+// Use memos to stop weird re-renders
+const ConversationItem = memo(({ conv, onSelect, onDelete }) => (
+  <div
+    key={conv.id}
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "8px",
+      marginBottom: "5px",
+      cursor: "pointer",
+      background: "#fff",
+      borderRadius: "8px",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+    }}
+  >
+    <div
+      onClick={() => onSelect(conv.id, conv.other_user_username || "Unknown")}
+      style={{
+        flex: 1,
+        display: "flex",
+        justifyContent: "center",
+        textAlign: "center",
+      }}
+    >
+      {conv.other_user_username || "Unknown"}
+    </div>
+    <button
+      onClick={() => onDelete(conv.id)}
+      style={{
+        background: "transparent",
+        border: "none",
+        color: "#ff4081",
+        fontWeight: "bold",
+        cursor: "pointer",
+        marginLeft: "10px",
+      }}
+      title="Delete conversation"
+    >
+      ✕
+    </button>
+  </div>
+));
+
+ConversationItem.displayName = "ConversationItem";
 
 export default function ConversationList({ onSelect }) {
   const [conversations, setConversations] = useState([]);
@@ -10,11 +56,15 @@ export default function ConversationList({ onSelect }) {
   const token = localStorage.getItem("token");
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
-  // Load all conversations initially
+  // Load all conversations with smart comparison
   useEffect(() => {
+    let interval;
+    let isActive = true;
+
     const loadConversations = async () => {
+      if (!isActive) return;
+
       try {
-        setLoadingConversations(true);
         const res = await fetch(`${API_BASE}/api/chat`, {
           headers: {
             "Content-Type": "application/json",
@@ -23,19 +73,59 @@ export default function ConversationList({ onSelect }) {
         });
         if (!res.ok) throw new Error("Failed to fetch conversations");
         const data = await res.json();
-        setConversations(
-          Array.isArray(data.conversations) ? data.conversations : []
-        );
+        const newConversations = Array.isArray(data.conversations)
+          ? data.conversations
+          : [];
+
+        // Only update state if conversations actually changed (by ID comparison)
+        setConversations((prevConversations) => {
+          const prevIds = prevConversations.map((c) => c.id).sort();
+          const newIds = newConversations.map((c) => c.id).sort();
+
+          // Check if IDs are different
+          const idsChanged =
+            prevIds.length !== newIds.length ||
+            prevIds.some((id, idx) => id !== newIds[idx]);
+
+          if (idsChanged) {
+            setLoadingConversations(false);
+            return newConversations;
+          }
+
+          setLoadingConversations(false);
+          return prevConversations;
+        });
       } catch (err) {
         console.error(err);
         setError("Failed to load conversations");
-      } finally {
         setLoadingConversations(false);
       }
     };
 
+    // Load on mount
     loadConversations();
-  }, [token]);
+
+    // Poll every 5 seconds
+    interval = setInterval(loadConversations, 5000);
+
+    // Stop polling when page is hidden to save resources
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        clearInterval(interval);
+      } else {
+        loadConversations();
+        interval = setInterval(loadConversations, 5000);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [token, API_BASE]);
 
   // Load users asynchronously for the AsyncSelect
   const loadOptions = async (inputValue) => {
@@ -189,48 +279,12 @@ export default function ConversationList({ onSelect }) {
         <p>No conversations yet</p>
       ) : (
         conversations.map((conv) => (
-          <div
+          <ConversationItem
             key={conv.id}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "8px",
-              marginBottom: "5px",
-              cursor: "pointer",
-              background: "#fff",
-              borderRadius: "8px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-          >
-            <div
-              onClick={() =>
-                onSelect(conv.id, conv.other_user_username || "Unknown")
-              }
-              style={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "center",
-                textAlign: "center",
-              }}
-            >
-              {conv.other_user_username || "Unknown"}
-            </div>
-            <button
-              onClick={() => deleteConversation(conv.id)}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#ff4081",
-                fontWeight: "bold",
-                cursor: "pointer",
-                marginLeft: "10px",
-              }}
-              title="Delete conversation"
-            >
-              ✕
-            </button>
-          </div>
+            conv={conv}
+            onSelect={onSelect}
+            onDelete={deleteConversation}
+          />
         ))
       )}
     </div>

@@ -115,7 +115,15 @@ export const getConversations = async (req, res) => {
       [userId, userId, userId, userId]
     );
 
-    res.json({ conversations });
+    // Normalize timestamp fields
+    const normalizedConversations = conversations.map((c) => ({
+      ...c,
+      last_message_time: c.last_message_time
+        ? new Date(c.last_message_time).toISOString()
+        : null,
+    }));
+
+    res.json({ conversations: normalizedConversations });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to get conversation list" });
@@ -300,7 +308,14 @@ export const getMessagesByConversationId = async (req, res) => {
       [conversationId]
     );
 
-    res.json({ messages });
+    // Normalize message timestamps
+    const normalizedMessages = messages.map((m) => ({
+      ...m,
+      created_at: m.created_at ? new Date(m.created_at).toISOString() : null,
+      read_at: m.read_at ? new Date(m.read_at).toISOString() : null,
+    }));
+
+    res.json({ messages: normalizedMessages });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to get messages from conversation" });
@@ -344,7 +359,14 @@ export const getMessagesWithUsername = async (req, res) => {
       [conversationId]
     );
 
-    return res.json({ conversationId, messages });
+    // Normalize message timestamps
+    const normalized = messages.map((m) => ({
+      ...m,
+      created_at: m.created_at ? new Date(m.created_at).toISOString() : null,
+      read_at: m.read_at ? new Date(m.read_at).toISOString() : null,
+    }));
+
+    return res.json({ conversationId, messages: normalized });
   } catch (err) {
     console.error("Error in getMessagesWithUsername:", err);
     return res.status(500).json({ error: "Failed to get messages from other user" });
