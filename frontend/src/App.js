@@ -13,6 +13,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Chat from "./Pages/Chat";
 import LandingNav from "./Components/LandingNav";
+import UserProfile from "./Pages/UserProfile";
 
 function App() {
   const location = useLocation();
@@ -24,7 +25,7 @@ function App() {
   }, [user]);
 
   const hideNavbarOnPaths = [
-    "/main",
+    "/profile",
     "/update",
     "/delete",
     "/register",
@@ -103,11 +104,18 @@ function App() {
             path="/chat"
             element={
               <ProtectedRoute>
-                <Chat />
+                <Chat /> 
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile /> 
+              </ProtectedRoute>
+            }
+          />
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/landing" replace />} />
         </Routes>

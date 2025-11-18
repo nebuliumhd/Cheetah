@@ -1,9 +1,5 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken"
 import { db }  from "../db.js";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = "12h";
 
 // REGISTER USER
 export const registerUser = async (req, res) => {
@@ -60,21 +56,13 @@ export const loginUser = async (req, res) => {
 
     const user = users[0];
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
+
     if (!isValidPassword) {
       return res.status(401).json({ message: "Invalid password.", body: password });
     }
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
-
-    console.log("Signed token:", token);
-
     res.status(200).json({
       message: "Login successful",
-      token,
       user: {
         id: user.id,
         first_name: user.first_name,
@@ -116,17 +104,20 @@ export const updateUser = async (req, res) => {
   try {
     const { id, first_name, last_name, username, email, password } = req.body;
 
+    if (!id) return res.status(400).json({ message: "User ID is required." });
+
     const [users] = await db.query("SELECT * FROM users WHERE id = ?", [id]);
     if (users.length === 0) return res.status(404).json({ message: "User not found." });
 
     const user = users[0];
 
-    // Check username/email uniqueness
+    // Check username uniqueness only if changed
     if (username && username !== user.username) {
       const [checkUser] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
       if (checkUser.length > 0) return res.status(400).json({ message: "Username already in use." });
     }
 
+    // Check email uniqueness only if changed
     if (email && email !== user.email) {
       const [checkEmail] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
       if (checkEmail.length > 0) return res.status(400).json({ message: "Email already in use." });
@@ -135,15 +126,23 @@ export const updateUser = async (req, res) => {
     // Hash password if changed
     const newPasswordHash = password ? await bcrypt.hash(password, 12) : user.password_hash;
 
-    //Update database with updated values
+    // Update only fields that were provided
+    const updatedUser = {
+      first_name: first_name || user.first_name,
+      last_name: last_name || user.last_name,
+      username: username || user.username,
+      email: email || user.email,
+      password_hash: newPasswordHash,
+    };
+
     await db.query(
       `UPDATE users SET first_name=?, last_name=?, username=?, email=?, password_hash=? WHERE id=?`,
       [
-        first_name || user.first_name,
-        last_name || user.last_name,
-        username || user.username,
-        email || user.email,
-        newPasswordHash,
+        updatedUser.first_name,
+        updatedUser.last_name,
+        updatedUser.username,
+        updatedUser.email,
+        updatedUser.password_hash,
         id
       ]
     );
@@ -155,7 +154,6 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ message: "Something went wrong during update." });
   }
 };
-
 
 // GET USER BY USERNAME
 export const getUserByUsername = async (req, res) => {

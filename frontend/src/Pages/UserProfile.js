@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import "./UserProfile.css";
-import DeleteAccount  from '../Components/DeleteAccount';
+import DeleteAccount from '../Components/DeleteAccount';
+import UpdateAccount from '../Components/Update';
 
-const Main = () => {
+const UserProfile = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
@@ -13,23 +14,32 @@ const Main = () => {
   };
 
   return (
-    <div className="Main-Page">
-      <h1 className="Contact-Title">Welcome to your ChetChat Account {user ? `, ${user.username}` : ''}!</h1>
-      <p>
-        Still under development, but you can check out the other pages like Contact, Register, and Login.
-      </p>
+    <div className="UserProfile-Page">
+      <h1 className="Profile-Title">Welcome to your ChetChat Account!</h1>
 
-      <button className="custom-button1" onClick={handleLogout}>
-        Log Out
-      </button>
+      {user ? (
+        <div className="user-info">
+          <p><strong>First Name:</strong> {user.first_name || '-'}</p>
+          <p><strong>Last Name:</strong> {user.last_name || '-'}</p>
+          <p><strong>Username:</strong> {user.username || '-'}</p>
+          <p><strong>Email:</strong> {user.email || '-'}</p>
+        </div>
+      ) : (
+        <p>Loading user information...</p>
+      )}
 
-       <DeleteAccount />
+      <div className="actions">
+        <button className="custom-button1" onClick={handleLogout}>Log Out</button>
 
-      <button className="custom-button1" onClick={() => navigate('/update')}>
-        Update Account Information
-      </button>
+        <DeleteAccount />
+        <UpdateAccount />
+
+        <button className="custom-button1" onClick={() => navigate('/chat')}>Chats</button>
+        <button className="custom-button1" onClick={() => navigate('/posts')}>Make a Post</button>
+        <button className="custom-button1" onClick={() => navigate('/feed')}>Go to Feed</button>
+      </div>
     </div>
   );
 };
 
-export default Main;    
+export default UserProfile;

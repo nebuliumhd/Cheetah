@@ -9,7 +9,7 @@ const LandingPage = () => {
 
   const handleGetStarted = () => {
     if (isLoggedIn) {
-      navigate("/chat");
+      navigate("/profile");
     } else {
       navigate("/register");
     }
