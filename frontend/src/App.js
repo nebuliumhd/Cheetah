@@ -19,8 +19,11 @@ function App() {
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
 
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+
   useEffect(() => {
     console.log("User changed:", user);
+    console.log("Profile picture:", user?.profile_picture);
   }, [user]);
 
   const hideNavbarOnPaths = [
@@ -36,6 +39,15 @@ function App() {
     logout();
     navigate("/login");
   };
+
+  // Get profile picture URL
+  const profilePicUrl = user?.profile_picture
+    ? `${API_BASE}${user.profile_picture}`
+    : `${API_BASE}/uploads/profiles/default-profile.jpg`;
+
+  console.log("Full user object:", user);
+  console.log("user.profile_picture value:", user?.profile_picture);
+  console.log("Profile pic URL:", profilePicUrl);
 
   return (
     <div
@@ -59,11 +71,33 @@ function App() {
               color: "white",
               fontWeight: "bold",
               fontSize: "16px",
-              flexShrink: 0, // Prevent navbar from shrinking
+              flexShrink: 0,
               boxSizing: "border-box",
             }}
           >
-            <div>Hello, {user.username}!</div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <img
+                src={profilePicUrl}
+                alt={user.username}
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "2px solid white",
+                }}
+                onError={(e) => {
+                  e.target.src = `${API_BASE}/uploads/images/default-profile.jpg`;
+                }}
+              />
+              <span>Hello, {user.username}!</span>
+            </div>
             <button
               onClick={handleLogout}
               style={{

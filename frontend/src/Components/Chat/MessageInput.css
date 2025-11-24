@@ -1,0 +1,118 @@
+.message-input-wrapper {
+  border-top: 1px solid #ccc;
+  background-color: #fff;
+}
+
+/* Error Banner */
+.error-banner {
+  background-color: #ffe5e5;
+  color: #c00;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 14px;
+  border-bottom: 1px solid #f5b5b5;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.error-banner.visible {
+  opacity: 1;
+}
+
+/* Image Preview Section */
+.preview-container {
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  align-items: center;
+}
+
+.preview-item {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.preview-img {
+  height: 100px;
+  width: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #ddd;
+}
+
+.preview-remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.preview-clear-btn {
+  padding: 6px 12px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* Message Input Area */
+.message-input {
+  display: flex;
+  padding: 10px;
+  align-items: center;
+}
+
+.attach-btn {
+  padding: 8px;
+  border-radius: 50%;
+  border: none;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  margin-right: 8px;
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-input {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.send-btn {
+  margin-left: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #ccc;
+  color: white;
+  border: none;
+  cursor: not-allowed;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.send-btn.active {
+  background-color: #0084ff;
+  cursor: pointer;
+}

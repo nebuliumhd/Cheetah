@@ -1,49 +1,53 @@
 import { useEffect, useState, memo } from "react";
 import AsyncSelect from "react-select/async";
+import "./ConversationList.css";
 
-// Use memos to stop weird re-renders
-const ConversationItem = memo(({ conv, onSelect, onDelete }) => (
-  <div
-    key={conv.id}
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "8px",
-      marginBottom: "5px",
-      cursor: "pointer",
-      background: "#fff",
-      borderRadius: "8px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-    }}
-  >
-    <div
-      onClick={() => onSelect(conv.id, conv.other_user_username || "Unknown")}
-      style={{
-        flex: 1,
-        display: "flex",
-        justifyContent: "center",
-        textAlign: "center",
-      }}
-    >
-      {conv.other_user_username || "Unknown"}
+// Memoized conversation item
+const ConversationItem = memo(({ conv, onSelect, onDelete, apiBase }) => {
+  const isGroup = conv.is_group;
+  const displayName = conv.display_name || (isGroup ? "Unnamed Group" : "Unknown");
+  const memberCount = conv.participant_ids?.length || 0;
+  
+  // Profile picture URL - use default if not set
+  const profilePicUrl = conv.profile_picture
+    ? `${apiBase}${conv.profile_picture}`
+    : `${apiBase}/uploads/profiles/default-profile.jpg`;
+
+  return (
+    <div className="conv-item">
+      <div className="conv-item-main" onClick={() => onSelect(conv)}>
+        <div className="conv-item-title">
+          {!isGroup && (
+            <img 
+              src={profilePicUrl} 
+              alt={displayName}
+              className="conv-item-avatar"
+              onError={(e) => {
+                e.target.src = `${apiBase}/uploads/profiles/default-profile.jpg`;
+              }}
+            />
+          )}
+          {isGroup && <span className="conv-item-icon">👥</span>}
+          <span className="conv-item-name">{displayName}</span>
+        </div>
+
+        {isGroup && (
+          <span className="conv-item-members">
+            {memberCount} member{memberCount !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      <button
+        className="conv-item-delete"
+        onClick={() => onDelete(conv.id)}
+        title="Delete conversation"
+      >
+        ✕
+      </button>
     </div>
-    <button
-      onClick={() => onDelete(conv.id)}
-      style={{
-        background: "transparent",
-        border: "none",
-        color: "#ff4081",
-        fontWeight: "bold",
-        cursor: "pointer",
-        marginLeft: "10px",
-      }}
-      title="Delete conversation"
-    >
-      ✕
-    </button>
-  </div>
-));
+  );
+});
 
 ConversationItem.displayName = "ConversationItem";
 
@@ -52,11 +56,15 @@ export default function ConversationList({ onSelect }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [error, setError] = useState("");
   const [loadingConversations, setLoadingConversations] = useState(false);
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState([]);
 
   const token = localStorage.getItem("token");
-  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+  const API_BASE =
+    process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
-  // Load all conversations with smart comparison
+  // Load conversations
   useEffect(() => {
     let interval;
     let isActive = true;
@@ -71,29 +79,29 @@ export default function ConversationList({ onSelect }) {
             Authorization: `Bearer ${token}`,
           },
         });
+
         if (!res.ok) throw new Error("Failed to fetch conversations");
+
         const data = await res.json();
         const newConversations = Array.isArray(data.conversations)
           ? data.conversations
           : [];
 
-        // Only update state if conversations actually changed (by ID comparison)
-        setConversations((prevConversations) => {
-          const prevIds = prevConversations.map((c) => c.id).sort();
+        setConversations((prev) => {
+          const prevIds = prev.map((c) => c.id).sort();
           const newIds = newConversations.map((c) => c.id).sort();
 
-          // Check if IDs are different
-          const idsChanged =
+          const changed =
             prevIds.length !== newIds.length ||
-            prevIds.some((id, idx) => id !== newIds[idx]);
+            prevIds.some((id, i) => id !== newIds[i]);
 
-          if (idsChanged) {
+          if (changed) {
             setLoadingConversations(false);
             return newConversations;
           }
 
           setLoadingConversations(false);
-          return prevConversations;
+          return prev;
         });
       } catch (err) {
         console.error(err);
@@ -102,14 +110,10 @@ export default function ConversationList({ onSelect }) {
       }
     };
 
-    // Load on mount
     loadConversations();
-
-    // Poll every 5 seconds
     interval = setInterval(loadConversations, 5000);
 
-    // Stop polling when page is hidden to save resources
-    const handleVisibilityChange = () => {
+    const handleVisibility = () => {
       if (document.hidden) {
         clearInterval(interval);
       } else {
@@ -118,16 +122,15 @@ export default function ConversationList({ onSelect }) {
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       isActive = false;
       clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [token, API_BASE]);
 
-  // Load users asynchronously for the AsyncSelect
   const loadOptions = async (inputValue) => {
     if (!inputValue.trim()) return [];
 
@@ -145,59 +148,115 @@ export default function ConversationList({ onSelect }) {
       );
 
       if (!res.ok) throw new Error("Failed to fetch users");
+
       const data = await res.json();
       return Array.isArray(data.users) ? data.users : [];
-    } catch (err) {
-      console.error(err);
+    } catch {
       return [];
     }
   };
 
-  // Start a new conversation
+  // For direct messages (1:1)
   const startConversation = async () => {
     if (!selectedUser) return;
 
-    // Prevent duplicate conversations
     if (
-      conversations.some((c) => c.other_user_username === selectedUser.value)
+      conversations.some(
+        (c) => c.other_user_username === selectedUser.value
+      )
     ) {
       setError("Conversation with this user already exists!");
       setTimeout(() => setError(""), 3000);
       return;
     }
 
-    setError("");
-
     try {
-      const res = await fetch(
-        `${API_BASE}/api/chat/start-by-username`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ username: selectedUser.value }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/api/chat/start-by-username`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ username: selectedUser.value }),
+      });
 
       const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.error || "Failed to start conversation");
+      if (!res.ok) throw new Error(data.error);
 
       setConversations((prev) =>
         prev.some((c) => c.id === data.id) ? prev : [data, ...prev]
       );
-      onSelect(data.id, selectedUser.value);
+
+      onSelect({
+        id: data.id,
+        is_group: false,
+        display_name: selectedUser.value,
+        other_user_username: selectedUser.value,
+      });
+
       setSelectedUser(null);
     } catch (err) {
-      console.error(err);
       setError(err.message);
       setTimeout(() => setError(""), 3000);
     }
   };
 
-  // Delete a conversation
+  // Create group chat
+  const createGroupChat = async () => {
+    if (!groupName.trim()) {
+      setError("Group name is required");
+      setTimeout(() => setError(""), 3000);
+      return;
+    }
+
+    if (selectedMembers.length < 2) {
+      setError("Select at least 2 members for a group");
+      setTimeout(() => setError(""), 3000);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/chat/group/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          groupName: groupName.trim(),
+          participantUsernames: selectedMembers.map((m) => m.label),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setShowGroupModal(false);
+      setGroupName("");
+      setSelectedMembers([]);
+
+      const convRes = await fetch(`${API_BASE}/api/chat`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const convData = await convRes.json();
+      setConversations(convData.conversations || []);
+
+      onSelect({
+        id: data.conversation.id,
+        is_group: true,
+        display_name: groupName.trim(),
+      });
+    } catch (err) {
+      setError(err.message);
+      setTimeout(() => setError(""), 3000);
+    }
+  };
+
+  // Delete conversation
   const deleteConversation = async (convId) => {
     if (
       !window.confirm(
@@ -222,37 +281,25 @@ export default function ConversationList({ onSelect }) {
 
       const data = await res.json();
 
-      setConversations((prev) => prev.filter((c) => c.id !== convId));
-      onSelect(null, null);
+      setConversations((prev) =>
+        prev.filter((c) => c.id !== convId)
+      );
 
-      // Show success message
+      onSelect(null);
+
       alert(
-        `Conversation deleted successfully. ${
-          data.imagesDeleted || 0
-        } image(s) removed.`
+        `Conversation deleted successfully. ${data.imagesDeleted || 0} image(s) removed.`
       );
     } catch (err) {
-      console.error(err);
       alert("Error deleting conversation");
     }
   };
 
   return (
-    <div
-      className="conversation-list"
-      style={{
-        width: "280px",
-        borderRight: "1px solid #ccc",
-        padding: "10px",
-        background: "#f9f9f9",
-        overflowY: "auto",
-      }}
-    >
+    <div className="conversation-list">
       <h3>Your Conversations</h3>
 
-      <div
-        style={{ marginBottom: "15px", display: "flex", alignItems: "center" }}
-      >
+      <div className="one-to-one-box">
         <AsyncSelect
           cacheOptions
           loadOptions={loadOptions}
@@ -263,15 +310,19 @@ export default function ConversationList({ onSelect }) {
           styles={{ container: (base) => ({ ...base, flexGrow: 1 }) }}
         />
 
-        <button
-          onClick={startConversation}
-          style={{ marginLeft: "5px", padding: "5px 10px" }}
-        >
+        <button className="start-button" onClick={startConversation}>
           +
         </button>
       </div>
 
-      {error && <p style={{ color: "red", fontSize: "12px" }}>{error}</p>}
+      <button
+        className="new-group-button"
+        onClick={() => setShowGroupModal(true)}
+      >
+        New Group Chat
+      </button>
+
+      {error && <p className="error-text">{error}</p>}
 
       {loadingConversations ? (
         <p>Loading...</p>
@@ -284,8 +335,65 @@ export default function ConversationList({ onSelect }) {
             conv={conv}
             onSelect={onSelect}
             onDelete={deleteConversation}
+            apiBase={API_BASE}
           />
         ))
+      )}
+
+      {/* Group Modal */}
+      {showGroupModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowGroupModal(false)}
+        >
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Create Group Chat</h3>
+
+            <input
+              type="text"
+              placeholder="Group name"
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              className="modal-input"
+            />
+
+            <AsyncSelect
+              isMulti
+              cacheOptions
+              loadOptions={loadOptions}
+              defaultOptions
+              value={selectedMembers}
+              onChange={setSelectedMembers}
+              placeholder="Search and add members..."
+              styles={{
+                container: (base) => ({ ...base, marginBottom: "15px" }),
+              }}
+            />
+
+            <div className="modal-actions">
+              <button
+                className="modal-create-button"
+                onClick={createGroupChat}
+              >
+                Create Group
+              </button>
+
+              <button
+                className="modal-cancel-button"
+                onClick={() => {
+                  setShowGroupModal(false);
+                  setGroupName("");
+                  setSelectedMembers([]);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
