@@ -49,17 +49,51 @@ export const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const [users] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
+    const [users] = await db.query(
+      "SELECT * FROM users WHERE username = ?",
+      [username]
+    );
     if (users.length === 0) {
-      return res.status(401).json({ message: "Invalid username.", body: username });
+      return res.status(401).json({ message: "Invalid username." });
     }
 
     const user = users[0];
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
 
-    if (!isValidPassword) {
-      return res.status(401).json({ message: "Invalid password.", body: password });
+    // --- 1. Check lockout ---
+    if (user.lock_until && user.lock_until > Date.now()) {
+      return res.status(403).json({
+        message: "Account is locked. Try again later.",
+        unlockTime: user.lock_until
+      });
     }
+
+    // --- 2. Verify password ---
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    if (!isValidPassword) {
+  let attempts = user.failed_attempts + 1;
+  let lockUntil = null;
+
+  if (attempts >= 5) {
+    const lockDurationMinutes = 10;
+    const lockDate = new Date(Date.now() + lockDurationMinutes * 60 * 1000);
+    lockUntil = lockDate.toISOString().slice(0, 19).replace("T", " "); // DATETIME
+  }
+
+  await db.query(
+    "UPDATE users SET failed_attempts = ?, lock_until = ? WHERE id = ?",
+    [attempts, lockUntil, user.id]
+  );
+
+  return res.status(401).json({
+    message: "Invalid password.",
+    attemptsLeft: Math.max(0, 5 - attempts),
+    locked: attempts >= 5,
+  });
+}
+    await db.query(
+      "UPDATE users SET failed_attempts = 0, lock_until = NULL WHERE id = ?",
+      [user.id]
+    );
 
     res.status(200).json({
       message: "Login successful",
@@ -71,7 +105,6 @@ export const loginUser = async (req, res) => {
         email: user.email,
       },
     });
-
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Internal server error." });
