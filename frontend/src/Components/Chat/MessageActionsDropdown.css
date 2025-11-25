@@ -1,0 +1,108 @@
+.message-actions-container {
+  position: relative;
+  display: inline-block;
+}
+
+.message-actions-trigger {
+  background: none;
+  border: none;
+  color: #65676b;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  line-height: 1;
+}
+
+/* Show trigger on hover of parent message */
+.message-row:hover .message-actions-trigger {
+  opacity: 1;
+}
+
+.message-actions-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.message-actions-trigger:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Dropdown menu */
+.message-actions-dropdown {
+  position: absolute;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Position variations */
+.message-actions-dropdown.bottom-right {
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+}
+
+.message-actions-dropdown.bottom-left {
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #050505;
+  transition: background-color 0.15s ease;
+}
+
+.action-item:hover {
+  background-color: #f2f2f2;
+}
+
+.action-item.edit:hover {
+  background-color: #e7f3ff;
+}
+
+.action-item.delete:hover {
+  background-color: #ffe5e5;
+  color: #c00;
+}
+
+.action-icon {
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+/* Border between items */
+.action-item:not(:last-child) {
+  border-bottom: 1px solid #e4e6eb;
+}

@@ -70,3 +70,56 @@ export const uploadPostImages = (req, res, next) => {
     next();
   });
 };
+
+export const uploadProfilePicture = (req, res, next) => {
+  // Use a different destination for profile pictures
+  const profileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = "./uploads/profiles/";
+      
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      // Use user ID in filename to EASILY replace old profile pics
+      const userId = req.user.id;
+      const uniqueName = `profile_${userId}${path.extname(file.originalname)}`;
+      cb(null, uniqueName);
+    },
+  });
+
+  const profileUpload = multer({
+    storage: profileStorage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /jpeg|jpg|png|gif|webp/;
+      const extname = allowedTypes.test(
+        path.extname(file.originalname).toLowerCase()
+      );
+      const mimetype = allowedTypes.test(file.mimetype);
+
+      if (mimetype && extname) {
+        return cb(null, true);
+      } else {
+        cb(new Error("Only image files are allowed!"));
+      }
+    },
+  });
+
+  profileUpload.single("profilePicture")(req, res, (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res
+          .status(400)
+          .json({ error: "File size exceeds limit of 5MB" });
+      }
+      return res
+        .status(400)
+        .json({ error: err.message || "File upload error" });
+    }
+    next();
+  });
+};

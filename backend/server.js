@@ -47,7 +47,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/users", userRoutes);
 app.use("/api/chat", authMiddleware, chatRoutes);
-app.use("/api/feed", feedRoutes)
+app.use("/api/feed", feedRoutes);
 app.use("/api/auth", authRoutes);
 
 // Serve React build (for production)

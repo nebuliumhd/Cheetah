@@ -1,0 +1,150 @@
+.conversation-list {
+  width: 280px;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+  background: #f9f9f9;
+  overflow-y: auto;
+}
+
+.one-to-one-box {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.start-button {
+  margin-left: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.new-group-button {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  background-color: #0084ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.error-text {
+  color: red;
+  font-size: 12px;
+}
+
+/* Conversation Item */
+.conv-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.conv-item-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.conv-item-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.conv-item-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e4e6eb;
+}
+
+.conv-item-icon {
+  font-size: 16px;
+}
+
+.conv-item-name {
+  font-weight: 500;
+}
+
+.conv-item-members {
+  font-size: 11px;
+  color: #65676b;
+}
+
+.conv-item-delete {
+  background: transparent;
+  border: none;
+  color: #ff4081;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-create-button {
+  flex: 1;
+  padding: 10px;
+  background-color: #0084ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.modal-cancel-button {
+  flex: 1;
+  padding: 10px;
+  background-color: #e4e6eb;
+  color: black;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
