@@ -16,6 +16,18 @@
   color: #ffffff;
 }
 
+.BackgroundDiv {
+  background-color: #4b0430ff;
+  /* background-image: "url(/images/chat-bg.jpg)"; */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
 .MainDiv {
   display: flex;
   flex-direction: column;

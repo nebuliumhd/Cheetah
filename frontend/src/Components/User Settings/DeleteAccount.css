@@ -1,0 +1,14 @@
+.delete-form {
+  display: flex !important;          /* force flex */
+  flex-direction: column !important; /* stack vertically */
+  align-items: stretch;              /* make inputs/buttons full width */
+  gap: 0.75rem;                      /* spacing between elements */
+}
+
+.delete-form label,
+.delete-form input,
+.delete-form button {
+  display: block;   /* each element takes its own line */
+  width: 100%;      /* fill the form width */
+  box-sizing: border-box;
+}

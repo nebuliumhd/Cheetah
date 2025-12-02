@@ -1,0 +1,124 @@
+/* Overlay background */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* semi-transparent black */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Show modal with fade-in */
+.modal-overlay.fade-in {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Modal content box */
+.modal-content {
+  background-color: #2f3136; /* Discord dark background */
+  color: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.fade-in .modal-content {
+  transform: translateY(0);
+}
+
+/* Modal heading */
+.modal-content h2 {
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+/* Image preview */
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.preview-img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 8px;
+}
+
+/* Buttons */
+.modal-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.modal-buttons button {
+  background-color: #7289da;
+  border: none;
+  padding: 8px 16px;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.modal-buttons button:hover {
+  background-color: #5b6eae;
+}
+
+.modal-buttons button:disabled {
+  background-color: #99aab5;
+  cursor: not-allowed;
+}
+
+/* Error banner */
+.error-banner {
+  background-color: #f04747;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* Optional: remove focus outline for buttons */
+.modal-buttons button:focus {
+  outline: none;
+}
+
+/* Close button in top-right corner */
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  transition: color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: #f04747; /* red on hover */
+}

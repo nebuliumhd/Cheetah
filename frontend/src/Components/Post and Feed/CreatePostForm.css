@@ -1,0 +1,58 @@
+.create-post {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.post-input {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  resize: vertical;
+}
+
+.file-label {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #eee;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.file-input {
+  display: none;
+}
+
+.preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.preview-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.submit-post {
+  display: block;
+  margin-top: 12px;
+  padding: 10px;
+  background: #007bff;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.submit-post:disabled {
+  background: #5ea2ff;
+}

@@ -7,6 +7,16 @@
   pointer-events: none;
 }
 
+#light {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+#dark {
+  background-color: #790cd3;
+  color: #fff;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -36,3 +46,28 @@
     transform: rotate(360deg);
   }
 }
+
+.switch {
+  display: flex;
+  width: 100vw;
+  height: 100px;
+  justify-content: center;
+  align-items: center;
+}
+
+.nav-btn {
+  padding: 8px 16px;
+  background-color: #fff;
+  color: #4b0430ff;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background-color: #f0f0f0;
+}
+

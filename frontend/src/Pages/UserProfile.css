@@ -1,9 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap');
 
 .Main-Page {
-  background-color: #00ff80;
+  background-color: #ffffff;
   padding: 20px;
   text-align: center;
   font-family: 'Fredoka', sans-serif;
   font-size: 24px;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;  /* center horizontally */
+  align-items: center;      /* center vertically */
+}
+.custom-button1 {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+   width: 10rem;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 100%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 3px solid #6a6a6a;
+  transition: 0.2s ease;
+}
+
+.profile-avatar:hover {
+  opacity: 0.8;
 }
