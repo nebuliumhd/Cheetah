@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import PostContainer from "../Components/User Settings/PostContainer.js";
-import CreatePostForm from "../Components/User Settings/CreatePostForm.js";
+import PostContainer from "../Components/Post and Feed/PostContainer.js";
+import CreatePostForm from "../Components/Post and Feed/CreatePostForm.js";
 
 export default function PostPage() {
   const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
