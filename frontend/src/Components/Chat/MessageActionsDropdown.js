@@ -52,12 +52,10 @@ export default function MessageActionsDropdown({
         <div className={`message-actions-dropdown ${position}`}>
           {isTextMessage && (
             <button className="action-item edit" onClick={handleEdit}>
-              {/* <span className="action-icon">✏️</span> */}
               Edit
             </button>
           )}
           <button className="action-item delete" onClick={handleDelete}>
-            {/* <span className="action-icon">🗑️</span> */}
             Delete
           </button>
         </div>

@@ -1,20 +1,78 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ConversationList from "../Components/Chat/ConversationList";
 import ChatWindow from "../Components/Chat/ChatWindow";
 import MessageInput from "../Components/Chat/MessageInput";
+import GroupSettingsModal from "../Components/Chat/GroupSettingsModal";
+import { useAuth } from "../context/AuthContext";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
 export default function Chat() {
+  const { user, userId } = useAuth();
+  const currentUserId = userId || user?.id;
+  
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [showGroupSettings, setShowGroupSettings] = useState(false);
+  const [conversations, setConversations] = useState([]);
+
+  const token = localStorage.getItem("token");
+
+  // Load conversations
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/chat`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch conversations");
+
+        const data = await res.json();
+        const newConversations = Array.isArray(data.conversations)
+          ? data.conversations
+          : [];
+
+        setConversations(newConversations);
+        
+        // Update selected conversation if it exists in the new list
+        if (selectedConversation) {
+          const updatedConv = newConversations.find(
+            (c) => c.id === selectedConversation.id
+          );
+          if (updatedConv) {
+            setSelectedConversation(updatedConv);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load conversations:", err);
+      }
+    };
+
+    loadConversations();
+  }, [API_BASE, token, refreshTrigger, selectedConversation?.id]);
 
   const handleMessageSent = () => {
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  const handleGroupNameUpdated = (newGroupName) => {
+    // Force refresh to get updated data from server
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handleParticipantsChanged = (newCount) => {
+    // Force refresh to update participant count everywhere
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   const handleSelectConversation = (conversation) => {
+    console.log('Selected conversation:', conversation);
     setSelectedConversation(conversation);
+    setShowGroupSettings(false);
   };
 
   // Get PFP for 1:1 chats
@@ -28,13 +86,9 @@ export default function Chat() {
   // Get correct member count for groups
   const getMemberCount = (conversation) => {
     if (!conversation || !conversation.is_group) return 0;
-
+    
     if (Array.isArray(conversation.participant_ids)) {
       return conversation.participant_ids.length;
-    }
-
-    if (typeof conversation.participant_ids === 'string') {
-      return conversation.participant_ids.split(',').filter(id => id.trim()).length;
     }
     
     return 0;
@@ -53,7 +107,10 @@ export default function Chat() {
       }}
     >
       {/* Sidebar */}
-      <ConversationList onSelect={handleSelectConversation} />
+      <ConversationList 
+        onSelect={handleSelectConversation} 
+        conversations={conversations}
+      />
 
       {/* Chat Area */}
       <div
@@ -96,7 +153,7 @@ export default function Chat() {
                 />
               )}
 
-              {/* Group emoji (TODO: group chat picture?) */}
+              {/* Group emoji */}
               {selectedConversation.is_group && (
                 <span style={{ fontSize: "24px" }}>👥</span>
               )}
@@ -129,12 +186,7 @@ export default function Chat() {
                     cursor: "pointer",
                     fontSize: "14px",
                   }}
-                  onClick={() => {
-                    // Just some filler stuff
-                    alert(
-                      "Group settings coming soon!"
-                    );
-                  }}
+                  onClick={() => setShowGroupSettings(true)}
                 >
                   Settings
                 </button>
@@ -153,7 +205,7 @@ export default function Chat() {
               <ChatWindow
                 conversation={selectedConversation}
                 refreshTrigger={refreshTrigger}
-                currentUserId={null}
+                currentUserId={currentUserId}
               />
             </div>
 
@@ -180,6 +232,17 @@ export default function Chat() {
           </div>
         )}
       </div>
+
+      {/* Group Settings Modal */}
+      {showGroupSettings && selectedConversation?.is_group && (
+        <GroupSettingsModal
+          conversation={selectedConversation}
+          currentUserId={currentUserId}
+          onClose={() => setShowGroupSettings(false)}
+          onGroupNameUpdated={handleGroupNameUpdated}
+          onParticipantsChanged={handleParticipantsChanged}
+        />
+      )}
     </div>
   );
 }

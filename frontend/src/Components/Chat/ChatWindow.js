@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import MessageActionsDropdown from "./MessageActionsDropdown";
-import "./ChatWindow.css";
+import "./ChatWindow.css"
 
 const MESSAGES_PER_PAGE = 20;
 const UNLOAD_THRESHOLD = 100;
 const NEAR_BOTTOM_THRESHOLD = 100;
 const UNLOAD_KEEP_PAGES = 2;
+const TIME_CLUSTER_THRESHOLD = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 export default function ChatWindow({ conversation, refreshTrigger }) {
   const { user, userId } = useAuth();
@@ -21,6 +22,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
   const [hasMoreOlder, setHasMoreOlder] = useState(true);
   const [firstUnreadIndex, setFirstUnreadIndex] = useState(null);
   const [allowMarkingAsRead, setAllowMarkingAsRead] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Edit state
   const [editingMessageId, setEditingMessageId] = useState(null);
@@ -43,6 +45,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
   const lastKnownMessageId = useRef(null);
   const pollingIntervalRef = useRef(null);
   const editInputRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
 
   // Lightbox handling
   const openLightbox = (img) => {
@@ -50,7 +53,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
     setLightboxMounted(true);
     setTimeout(() => setShowLightbox(true), 10);
   };
-  
+
   const closeLightbox = () => {
     setShowLightbox(false);
     setTimeout(() => {
@@ -67,17 +70,17 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setZoom((p) => Math.min(Math.max(p + delta, 1), 3));
   };
-  
+
   const dragStart = useRef({ x: null, y: null });
   const offsetStart = useRef({ x: 0, y: 0 });
-  
+
   const handleMouseDown = (e) => {
     e.preventDefault();
     dragStart.current = { x: e.clientX, y: e.clientY };
     offsetStart.current = { ...offset };
     setIsDragging(false);
   };
-  
+
   const handleMouseMove = (e) => {
     if (dragStart.current.x === null) return;
     const dx = e.clientX - dragStart.current.x;
@@ -89,12 +92,12 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
         y: offsetStart.current.y + dy,
       });
   };
-  
+
   const handleMouseUp = () => {
     dragStart.current = { x: null, y: null };
     setIsDragging(false);
   };
-  
+
   const handleMouseLeave = () => {
     dragStart.current = { x: null, y: null };
     setIsDragging(false);
@@ -110,7 +113,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
     if (Array.isArray(msg)) return String.fromCharCode(...msg);
     return msg;
   };
-  
+
   const formatTimestamp = (ts) => {
     if (!ts) return "";
     let epochMs;
@@ -129,6 +132,73 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
       month: "short",
       day: "numeric",
     });
+  };
+
+  // Format time for message timestamps (e.g., "2:45 PM")
+  const formatMessageTime = (ts) => {
+    if (!ts) return "";
+    let date;
+    if (typeof ts === "string") date = new Date(ts);
+    else if (ts instanceof Date) date = ts;
+    else if (typeof ts === "number") date = new Date(ts);
+    else return "";
+
+    if (isNaN(date.getTime())) return "";
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Format date for date separators
+  const formatDateSeparator = (ts) => {
+    if (!ts) return "";
+    let date;
+    if (typeof ts === "string") date = new Date(ts);
+    else if (ts instanceof Date) date = ts;
+    else if (typeof ts === "number") date = new Date(ts);
+    else return "";
+
+    if (isNaN(date.getTime())) return "";
+
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Check if it's today
+    if (date.toDateString() === today.toDateString()) {
+      return "Today";
+    }
+
+    // Check if it's yesterday
+    if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    }
+
+    // Otherwise, format as "Month Day, Year"
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Check if two timestamps are on the same day
+  const isSameDay = (ts1, ts2) => {
+    if (!ts1 || !ts2) return false;
+    const date1 = new Date(ts1);
+    const date2 = new Date(ts2);
+    return date1.toDateString() === date2.toDateString();
+  };
+
+  // Check if messages should be in the same time cluster
+  const isInSameCluster = (ts1, ts2) => {
+    if (!ts1 || !ts2) return false;
+    const time1 = new Date(ts1).getTime();
+    const time2 = new Date(ts2).getTime();
+    return Math.abs(time1 - time2) < TIME_CLUSTER_THRESHOLD;
   };
 
   const scrollToBottom = useCallback((instant = false) => {
@@ -157,9 +227,12 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
             Authorization: `Bearer ${token}`,
           },
         });
+
         setDisplayedMessages((prev) =>
           prev.map((m) =>
-            m.id === messageId ? { ...m, read_at: new Date().toISOString() } : m
+            m.id === messageId
+              ? { ...m, is_read: true, read_at: new Date().toISOString() }
+              : m
           )
         );
       } catch (err) {
@@ -173,7 +246,6 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
   const handleEditMessage = (message) => {
     setEditingMessageId(message.id);
     setEditText(parseMessage(message.ciphertext));
-    // Focus the input after state updates
     setTimeout(() => {
       if (editInputRef.current) {
         editInputRef.current.focus();
@@ -209,11 +281,14 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
         return;
       }
 
-      // Update LOCALLY
       setDisplayedMessages((prev) =>
         prev.map((m) =>
           m.id === messageId
-            ? { ...m, ciphertext: editText.trim(), edited_at: new Date().toISOString() }
+            ? {
+                ...m,
+                ciphertext: editText.trim(),
+                edited_at: new Date().toISOString(),
+              }
             : m
         )
       );
@@ -250,7 +325,6 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
         return;
       }
 
-      // Remove from local state
       setDisplayedMessages((prev) => prev.filter((m) => m.id !== message.id));
     } catch (err) {
       console.error("Error deleting message:", err);
@@ -258,11 +332,18 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
     }
   };
 
-  // Load older messages for pagination purposes
   const loadOlderMessages = useCallback(async () => {
-    if (!conversationId || isLoadingOlderRef.current || !hasMoreOlder || displayedMessages.length === 0) {
+    if (
+      !conversationId ||
+      isLoadingOlderRef.current ||
+      !hasMoreOlder ||
+      displayedMessages.length === 0
+    ) {
       return;
     }
+
+    // Capture conversation ID at call time
+    const currentConversationId = conversationId;
 
     isLoadingOlderRef.current = true;
     setLoadingOlder(true);
@@ -282,7 +363,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `${API_BASE}/api/chat/messages/${conversationId}?before=${before}&limit=${MESSAGES_PER_PAGE}`,
+        `${API_BASE}/api/chat/messages/${currentConversationId}?before=${before}&limit=${MESSAGES_PER_PAGE}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -290,14 +371,36 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
           },
         }
       );
-      
+
+      // CRITICAL: Check if conversation changed while loading
+      if (currentConversationId !== conversationId) {
+        console.log(
+          "Discarding older messages for stale conversation",
+          currentConversationId
+        );
+        setLoadingOlder(false);
+        isLoadingOlderRef.current = false;
+        return;
+      }
+
       if (!res.ok) throw new Error("Failed to fetch older messages");
-      
+
       const data = await res.json();
       const rows = data.messages || [];
 
       if (rows.length === 0) {
         setHasMoreOlder(false);
+        setLoadingOlder(false);
+        isLoadingOlderRef.current = false;
+        return;
+      }
+
+      // Verify messages belong to current conversation
+      if (
+        rows.length > 0 &&
+        rows[0].conversation_id !== currentConversationId
+      ) {
+        console.log("Rejecting older messages from wrong conversation");
         setLoadingOlder(false);
         isLoadingOlderRef.current = false;
         return;
@@ -321,14 +424,15 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
     }
   }, [conversationId, API_BASE, hasMoreOlder, displayedMessages]);
 
-  // Poll for new messages (TODO: REWORK TO BE LESS RESOURCE INTENSIVE?)
   const pollForNewMessages = useCallback(async () => {
-    if (!conversationId) return;
-    
+    const currentConversationId = conversationId;
+
+    if (!currentConversationId) return;
+
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `${API_BASE}/api/chat/messages/${conversationId}?limit=${MESSAGES_PER_PAGE}`,
+        `${API_BASE}/api/chat/messages/${currentConversationId}?limit=${MESSAGES_PER_PAGE}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -336,30 +440,66 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
           },
         }
       );
-      
+
       if (!res.ok) throw new Error("Failed to fetch messages");
-      
+
       const data = await res.json();
       const rows = data.messages || [];
 
-      if (rows.length === 0) {
-        if (displayedMessages.length === 0) {
-          setDisplayedMessages([]);
-          setHasMoreOlder(false);
-        }
+      // Verify this response is still for the current conversation
+      if (currentConversationId !== conversationId) {
+        console.log(
+          "Discarding stale poll results for conversation",
+          currentConversationId
+        );
         return;
       }
 
+      if (initialLoading) {
+        setInitialLoading(false);
+        setTimeout(() => setAllowMarkingAsRead(true), 300);
+      }
+
       setDisplayedMessages((prev) => {
+        // Verify messages belong to current conversation
+        if (prev.length > 0 && rows.length > 0) {
+          const firstPrevConvId = prev[0]?.conversation_id;
+          const firstNewConvId = rows[0]?.conversation_id;
+
+          // CRITICAL: Also check against current conversationId
+          if (firstNewConvId !== currentConversationId) {
+            console.log("Rejecting messages from wrong conversation");
+            return prev;
+          }
+
+          if (firstPrevConvId !== firstNewConvId) {
+            // Different conversation - reset everything
+            lastKnownMessageId.current = rows[rows.length - 1]?.id || null;
+            setHasMoreOlder(data.hasMore);
+            setTimeout(() => scrollToBottom(true), 100);
+            return rows;
+          }
+        }
+
         if (prev.length === 0) {
+          // Verify this is for the current conversation
+          if (
+            rows.length > 0 &&
+            rows[0].conversation_id !== currentConversationId
+          ) {
+            console.log("Rejecting initial messages from wrong conversation");
+            return prev;
+          }
+
           lastKnownMessageId.current = rows[rows.length - 1]?.id || null;
           setHasMoreOlder(data.hasMore);
-          
-          if (initialLoading) {
-            setTimeout(() => scrollToBottom(true), 100);
-          }
-          
+          setTimeout(() => scrollToBottom(true), 100);
           return rows;
+        }
+
+        if (rows.length === 0) {
+          setHasMoreOlder(false);
+          return [];
         }
 
         const lastDisplayedId = prev[prev.length - 1]?.id || 0;
@@ -371,52 +511,75 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
 
         if (isUserNearBottom()) {
           const updated = [...prev, ...newMessages];
-          lastKnownMessageId.current = updated[updated.length - 1]?.id || lastKnownMessageId.current;
-          
+          lastKnownMessageId.current =
+            updated[updated.length - 1]?.id || lastKnownMessageId.current;
+
           setTimeout(() => scrollToBottom(true), 50);
-          
+
           if (updated.length > UNLOAD_THRESHOLD) {
             const keepCount = MESSAGES_PER_PAGE * UNLOAD_KEEP_PAGES;
             return updated.slice(-keepCount);
           }
-          
+
           return updated;
         }
 
         return prev;
       });
-
-      if (initialLoading) {
-        setInitialLoading(false);
-        setTimeout(() => setAllowMarkingAsRead(true), 300);
-      }
     } catch (err) {
       console.error("Polling error:", err);
+      if (initialLoading) {
+        setInitialLoading(false);
+      }
     }
-  }, [conversationId, API_BASE, displayedMessages.length, initialLoading, isUserNearBottom, scrollToBottom]);
+  }, [
+    conversationId,
+    API_BASE,
+    initialLoading,
+    isUserNearBottom,
+    scrollToBottom,
+  ]);
 
-  // Scrolling handler
   const handleScroll = useCallback(() => {
+    // Add null check before destructuring
     if (!chatWindowRef.current) return;
-    const { scrollTop } = chatWindowRef.current;
 
-    if (scrollTop < 200 && hasMoreOlder && !isLoadingOlderRef.current) {
-      loadOlderMessages();
+    // Clear existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
     }
-  }, [loadOlderMessages, hasMoreOlder]);
+
+    // Debounce scroll handler
+    scrollTimeoutRef.current = setTimeout(() => {
+      // Check again inside timeout since ref could change
+      if (!chatWindowRef.current) return;
+
+      const { scrollTop } = chatWindowRef.current;
+
+      if (
+        scrollTop < 100 &&
+        hasMoreOlder &&
+        !isLoadingOlderRef.current &&
+        displayedMessages.length > 0
+      ) {
+        loadOlderMessages();
+      }
+    }, 150);
+  }, [loadOlderMessages, hasMoreOlder, displayedMessages.length]);
 
   // Effects
   useEffect(() => {
+    // Batch all state resets together
     setAllowMarkingAsRead(false);
     setInitialLoading(true);
     setDisplayedMessages([]);
     setLoadingOlder(false);
     setHasMoreOlder(true);
+    setEditingMessageId(null);
+    setEditText("");
     lastKnownMessageId.current = null;
     isLoadingOlderRef.current = false;
     messageRefs.current = {};
-    setEditingMessageId(null);
-    setEditText("");
   }, [conversationId]);
 
   useEffect(() => {
@@ -426,22 +589,23 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
       clearInterval(pollingIntervalRef.current);
     }
 
-    // Initial fetch (most recent messages at bottom)
+    // Initial load
     pollForNewMessages();
-    
-    pollingIntervalRef.current = setInterval(pollForNewMessages, 1000);
+
+    // CHANGED: More reasonable 3-second polling instead of 1 second
+    pollingIntervalRef.current = setInterval(pollForNewMessages, 3000);
 
     const handleVisibility = () => {
       if (document.hidden) {
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
         }
-        // Slower polling when tab is hidden (5 seconds)
-        pollingIntervalRef.current = setInterval(pollForNewMessages, 5000);
+        // Slow down when tab is hidden
+        pollingIntervalRef.current = setInterval(pollForNewMessages, 10000);
       } else {
+        // Speed up when tab is visible
         pollForNewMessages();
-        // Fast polling when tab is active (1 second)
-        pollingIntervalRef.current = setInterval(pollForNewMessages, 1000);
+        pollingIntervalRef.current = setInterval(pollForNewMessages, 3000);
       }
     };
 
@@ -458,7 +622,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
   useEffect(() => {
     const node = chatWindowRef.current;
     if (!node) return;
-    
+
     node.addEventListener("scroll", handleScroll);
     return () => node.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
@@ -476,7 +640,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
             if (
               message &&
               message.sender_id !== currentUserId &&
-              !message.read_at
+              !message.is_read
             ) {
               markMessageAsRead(parseInt(messageId, 10));
             }
@@ -485,7 +649,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
       },
       { threshold: 0.5, root: chatWindowRef.current }
     );
-    
+
     return () => observerRef.current?.disconnect();
   }, [allowMarkingAsRead, currentUserId, markMessageAsRead, displayedMessages]);
 
@@ -499,7 +663,7 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
 
   useEffect(() => {
     const firstUnread = displayedMessages.findIndex(
-      (msg) => !msg.read_at && msg.sender_id !== currentUserId
+      (msg) => !msg.is_read && msg.sender_id !== currentUserId
     );
     setFirstUnreadIndex(firstUnread === -1 ? null : firstUnread);
   }, [displayedMessages, currentUserId]);
@@ -526,212 +690,326 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
     },
     -1
   );
-  
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div className="chat-window" ref={chatWindowRef}>
-        {initialLoading ? (
-          <p className="chat-center-text">Loading messages...</p>
-        ) : !displayedMessages.length ? (
-          <p className="chat-center-text">
-            No messages yet. Start the conversation!
-          </p>
-        ) : (
-          <div style={{ flex: 1 }}>
-            {hasMoreOlder && (
-              <div
-                style={{
-                  height: "30px",
-                  marginBottom: "10px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {loadingOlder && (
-                  <p style={{ textAlign: "center", color: "#888", fontSize: "12px" }}>
-                    Loading older messages...
-                  </p>
-                )}
-              </div>
-            )}
-
-            {displayedMessages.map((msg, index) => {
-              const isSentByMe = String(msg.sender_id) === String(currentUserId);
-              const showUnreadLine = index === firstUnreadIndex && firstUnreadIndex !== null;
-              const isLastSentMessage = index === lastSentMessageIndex;
-              const isEditing = editingMessageId === msg.id;
-
-              const prevMsg = index > 0 ? displayedMessages[index - 1] : null;
-              const isSameSenderAsPrevious = prevMsg && prevMsg.sender_id === msg.sender_id;
-              const showSenderInfo = isGroup && !isSentByMe && !isSameSenderAsPrevious;
-
-              return (
-                <div key={msg.id}>
-                  {showUnreadLine && (
-                    <div className="unread-divider">
-                      <div className="unread-line" />
-                      <span className="unread-text">New Messages</span>
-                      <div className="unread-line" />
-                    </div>
+        <div className="chat-window" ref={chatWindowRef}>
+          {initialLoading ? (
+            <p className="chat-center-text">Loading messages...</p>
+          ) : !displayedMessages.length ? (
+            <p className="chat-center-text">
+              No messages yet. Start the conversation!
+            </p>
+          ) : (
+            <div style={{ flex: 1 }}>
+              {hasMoreOlder && (
+                <div
+                  style={{
+                    height: "30px",
+                    marginBottom: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {loadingOlder && (
+                    <p
+                      style={{
+                        textAlign: "center",
+                        color: "#888",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Loading older messages...
+                    </p>
                   )}
+                </div>
+              )}
 
-                  <div
-                    ref={(el) => (messageRefs.current[msg.id] = el)}
-                    data-message-id={msg.id}
-                    className={
-                      isSentByMe
-                        ? "message-row message-sent"
-                        : "message-row message-received"
-                    }
-                  >
-                    {showSenderInfo && (
-                      <div className="group-message-header">
-                        <img
-                          src={
-                            msg.sender_profile_picture
-                              ? `${API_BASE}${msg.sender_profile_picture}`
-                              : `${API_BASE}/uploads/profiles/default-profile.jpg`
-                          }
-                          alt={msg.sender_username || "User"}
-                          className="group-sender-avatar"
-                          onError={(e) => {
-                            e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
-                          }}
-                        />
-                        <div className="sender-label">
-                          {msg.sender_username || "Unknown"}
-                        </div>
+              {displayedMessages.map((msg, index) => {
+                const isSentByMe =
+                  String(msg.sender_id) === String(currentUserId);
+                const showUnreadLine =
+                  index === firstUnreadIndex && firstUnreadIndex !== null;
+                const isLastSentMessage = index === lastSentMessageIndex;
+                const isEditing = editingMessageId === msg.id;
+
+                const prevMsg = index > 0 ? displayedMessages[index - 1] : null;
+                const isSameSenderAsPrevious =
+                  prevMsg && prevMsg.sender_id === msg.sender_id;
+                const showSenderInfo =
+                  isGroup && !isSentByMe && !isSameSenderAsPrevious;
+
+                // Check if we need a date separator
+                const showDateSeparator =
+                  !prevMsg || !isSameDay(prevMsg.created_at, msg.created_at);
+
+                // Check if we should show timestamp (last message in cluster)
+                const nextMsg =
+                  index < displayedMessages.length - 1
+                    ? displayedMessages[index + 1]
+                    : null;
+                const showTimestamp =
+                  !nextMsg ||
+                  !isSameDay(msg.created_at, nextMsg.created_at) ||
+                  !isInSameCluster(msg.created_at, nextMsg.created_at) ||
+                  msg.sender_id !== nextMsg.sender_id;
+
+                return (
+                  <div key={msg.id}>
+                    {/* Date Separator */}
+                    {showDateSeparator && (
+                      <div className="date-separator">
+                        <div className="date-separator-line" />
+                        <span className="date-separator-text">
+                          {formatDateSeparator(msg.created_at)}
+                        </span>
+                        <div className="date-separator-line" />
                       </div>
                     )}
 
-                    <div className="message-content-wrapper">
-                      <div className="message-content">
-                        {msg.message_type === "image" ? (
-                          <div style={{ display: "inline-block", maxWidth: "70%" }}>
-                            <img
-                              src={`${API_BASE}${parseMessage(msg.ciphertext)}`}
-                              alt=""
-                              className="message-image"
-                              onClick={() =>
-                                openLightbox(`${API_BASE}${parseMessage(msg.ciphertext)}`)
-                              }
-                            />
-                            {isSentByMe && isLastSentMessage && (
-                              <div className="message-status">
-                                {msg.read_at ? (
-                                  <span>Read • {formatTimestamp(msg.read_at)}</span>
-                                ) : (
-                                  <span>Delivered • {formatTimestamp(msg.created_at)}</span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ) : isEditing ? (
-                          <div className="edit-message-container">
-                            <input
-                              ref={editInputRef}
-                              type="text"
-                              className="edit-message-input"
-                              value={editText}
-                              onChange={(e) => setEditText(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  handleSaveEdit(msg.id);
-                                } else if (e.key === "Escape") {
-                                  handleCancelEdit();
-                                }
-                              }}
-                            />
-                            <div className="edit-message-actions">
-                              <button
-                                className="edit-btn save"
-                                onClick={() => handleSaveEdit(msg.id)}
-                              >
-                                Save
-                              </button>
-                              <button
-                                className="edit-btn cancel"
-                                onClick={handleCancelEdit}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div
-                            style={{
-                              display: "inline-block",
-                              textAlign: isSentByMe ? "right" : "left",
+                    {/* Unread Line */}
+                    {showUnreadLine && (
+                      <div className="unread-divider">
+                        <div className="unread-line" />
+                        <span className="unread-text">New Messages</span>
+                        <div className="unread-line" />
+                      </div>
+                    )}
+
+                    <div
+                      ref={(el) => (messageRefs.current[msg.id] = el)}
+                      data-message-id={msg.id}
+                      className={
+                        isSentByMe
+                          ? "message-row message-sent"
+                          : "message-row message-received"
+                      }
+                    >
+                      {showSenderInfo && (
+                        <div className="group-message-header">
+                          <img
+                            src={
+                              msg.sender_profile_picture
+                                ? `${API_BASE}${msg.sender_profile_picture}`
+                                : `${API_BASE}/uploads/profiles/default-profile.jpg`
+                            }
+                            alt={msg.sender_username || "User"}
+                            className="group-sender-avatar"
+                            onError={(e) => {
+                              e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
                             }}
-                          >
-                            <span
-                              className={`message-bubble ${
-                                isSentByMe ? "bubble-sent" : "bubble-received"
-                              }`}
-                            >
-                              {parseMessage(msg.ciphertext)}
-                              {msg.edited_at && (
-                                <span className="edited-indicator"> (edited)</span>
-                              )}
-                            </span>
-                            {isSentByMe && isLastSentMessage && (
-                              <div className="message-status">
-                                {msg.read_at ? (
-                                  <span>Read • {formatTimestamp(msg.read_at)}</span>
-                                ) : (
-                                  <span>Delivered • {formatTimestamp(msg.created_at)}</span>
-                                )}
-                              </div>
-                            )}
+                          />
+                          <div className="sender-label">
+                            {msg.sender_username || "Unknown"}
                           </div>
+                        </div>
+                      )}
+
+                      <div className="message-content-wrapper">
+                        <div className="message-content">
+                          {msg.message_type === "image" ? (
+                            <div
+                              style={{
+                                display: "inline-block",
+                                maxWidth: "70%",
+                              }}
+                            >
+                              <img
+                                src={`${API_BASE}${parseMessage(
+                                  msg.ciphertext
+                                )}`}
+                                alt=""
+                                className="message-image"
+                                onClick={() =>
+                                  openLightbox(
+                                    `${API_BASE}${parseMessage(msg.ciphertext)}`
+                                  )
+                                }
+                              />
+                              {isSentByMe && isLastSentMessage && (
+                                <div className="message-status">
+                                  {msg.read_at ? (
+                                    <span>
+                                      Read • {formatTimestamp(msg.read_at)}
+                                    </span>
+                                  ) : (
+                                    <span>
+                                      Delivered •{" "}
+                                      {formatTimestamp(msg.created_at)}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ) : msg.message_type === "video" ? (
+                            <div
+                              style={{
+                                display: "inline-block",
+                                maxWidth: "70%",
+                              }}
+                            >
+                              <video
+                                src={`${API_BASE}${parseMessage(
+                                  msg.ciphertext
+                                )}`}
+                                controls
+                                className="message-video"
+                                style={{
+                                  maxWidth: "300px",
+                                  borderRadius: "10px",
+                                }}
+                              />
+                              {isSentByMe && isLastSentMessage && (
+                                <div className="message-status">
+                                  {msg.read_at ? (
+                                    <span>
+                                      Read • {formatTimestamp(msg.read_at)}
+                                    </span>
+                                  ) : (
+                                    <span>
+                                      Delivered •{" "}
+                                      {formatTimestamp(msg.created_at)}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ) : isEditing ? (
+                            <div className="edit-message-container">
+                              <input
+                                ref={editInputRef}
+                                type="text"
+                                className="edit-message-input"
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleSaveEdit(msg.id);
+                                  } else if (e.key === "Escape") {
+                                    handleCancelEdit();
+                                  }
+                                }}
+                              />
+                              <div className="edit-message-actions">
+                                <button
+                                  className="edit-btn save"
+                                  onClick={() => handleSaveEdit(msg.id)}
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  className="edit-btn cancel"
+                                  onClick={handleCancelEdit}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              style={{
+                                display: "inline-block",
+                                textAlign: isSentByMe ? "right" : "left",
+                              }}
+                            >
+                              <span
+                                className={`message-bubble ${
+                                  isSentByMe ? "bubble-sent" : "bubble-received"
+                                }`}
+                              >
+                                {parseMessage(msg.ciphertext)}
+                                {msg.edited_at && (
+                                  <span className="edited-indicator">
+                                    {" "}
+                                    (edited)
+                                  </span>
+                                )}
+                              </span>
+
+                              {/* Show timestamp for messages in cluster */}
+                              {showTimestamp && (
+                                <div
+                                  className={`message-timestamp ${
+                                    isSentByMe
+                                      ? "timestamp-sent"
+                                      : "timestamp-received"
+                                  }`}
+                                >
+                                  {formatMessageTime(msg.created_at)}
+                                </div>
+                              )}
+
+                              {isSentByMe && isLastSentMessage && (
+                                <div className="message-status">
+                                  {msg.read_at ? (
+                                    <span>
+                                      Read • {formatTimestamp(msg.read_at)}
+                                    </span>
+                                  ) : (
+                                    <span>
+                                      Delivered •{" "}
+                                      {formatTimestamp(msg.created_at)}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {isSentByMe && !isEditing && (
+                          <MessageActionsDropdown
+                            message={msg}
+                            onEdit={handleEditMessage}
+                            onDelete={handleDeleteMessage}
+                            position={
+                              isSentByMe ? "bottom-left" : "bottom-right"
+                            }
+                          />
                         )}
                       </div>
-
-                      {isSentByMe && !isEditing && (
-                        <MessageActionsDropdown
-                          message={msg}
-                          onEdit={handleEditMessage}
-                          onDelete={handleDeleteMessage}
-                          position={isSentByMe ? "bottom-left" : "bottom-right"}
-                        />
-                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
 
-        {lightboxMounted && lightBoxImage && (
-          <div
-            className={`lightbox-overlay ${showLightbox ? "visible" : ""}`}
-            onClick={closeLightbox}
-          >
-            <img
-              src={lightBoxImage}
-              alt=""
-              draggable={false}
-              onClick={(e) => e.stopPropagation()}
-              onWheel={handleWheel}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseLeave}
-              className="lightbox-image"
-              style={{
-                transform: `scale(${zoom}) translate(${
-                  offset.x / Math.max(zoom, 1)
-                }px, ${offset.y / Math.max(zoom, 1)}px)`,
-                transition: isDragging ? "none" : "transform 0.3s ease-in-out",
-                cursor: isDragging ? "grabbing" : zoom > 1 ? "grab" : "default",
-              }}
-            />
-          </div>
-        )}
-      </div>
+          {lightboxMounted && lightBoxImage && (
+            <div
+              className={`lightbox-overlay ${showLightbox ? "visible" : ""}`}
+              onClick={closeLightbox}
+            >
+              <img
+                src={lightBoxImage}
+                alt=""
+                draggable={false}
+                onClick={(e) => e.stopPropagation()}
+                onWheel={handleWheel}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
+                className="lightbox-image"
+                style={{
+                  transform: `scale(${zoom}) translate(${
+                    offset.x / Math.max(zoom, 1)
+                  }px, ${offset.y / Math.max(zoom, 1)}px)`,
+                  transition: isDragging
+                    ? "none"
+                    : "transform 0.3s ease-in-out",
+                  cursor: isDragging
+                    ? "grabbing"
+                    : zoom > 1
+                    ? "grab"
+                    : "default",
+                }}
+              />
+            </div>
+          )}
+        </div>
     </div>
   );
 }
