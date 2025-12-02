@@ -19,7 +19,7 @@
   opacity: 1;
 }
 
-/* Image Preview Section */
+/* Image & Video Preview Section */
 .preview-container {
   padding: 10px;
   background-color: #f5f5f5;
@@ -43,6 +43,52 @@
   border: 2px solid #ddd;
 }
 
+.preview-video-item {
+  position: relative;
+  height: 100px;
+  width: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #ddd;
+}
+
+.preview-video {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.video-icon {
+  font-size: 24px;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.video-name {
+  font-size: 10px;
+  color: white;
+  text-align: center;
+  padding: 0 4px;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .preview-remove-btn {
   position: absolute;
   top: -8px;
@@ -56,6 +102,7 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
+  z-index: 10;
 }
 
 .preview-clear-btn {
@@ -75,6 +122,7 @@
   display: flex;
   padding: 10px;
   align-items: center;
+  gap: 4px;
 }
 
 .attach-btn {
@@ -83,13 +131,22 @@
   border: none;
   background-color: #f0f0f0;
   cursor: pointer;
-  margin-right: 8px;
   font-size: 20px;
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.attach-btn:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.attach-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .text-input {
@@ -101,7 +158,7 @@
 }
 
 .send-btn {
-  margin-left: 8px;
+  margin-left: 4px;
   padding: 8px 16px;
   border-radius: 20px;
   background-color: #ccc;
@@ -115,4 +172,8 @@
 .send-btn.active {
   background-color: #0084ff;
   cursor: pointer;
+}
+
+.send-btn:disabled {
+  opacity: 0.6;
 }

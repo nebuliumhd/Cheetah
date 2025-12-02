@@ -141,10 +141,14 @@ export const editMessage = async (req, res) => {
     const msg = rows[0];
 
     if (msg.sender_id !== userId) {
-      return res.status(403).json({ error: "You can only edit your own messages" });
+      return res
+        .status(403)
+        .json({ error: "You can only edit your own messages" });
     }
     if (msg.message_type !== "text") {
-      return res.status(400).json({ error: "Only text messages can be edited" });
+      return res
+        .status(400)
+        .json({ error: "Only text messages can be edited" });
     }
 
     // Update the message
@@ -187,24 +191,26 @@ export const deleteMessage = async (req, res) => {
     const msg = rows[0];
 
     if (msg.sender_id !== userId) {
-      return res.status(403).json({ error: "You can only delete your own messages" });
+      return res
+        .status(403)
+        .json({ error: "You can only delete your own messages" });
     }
 
-    // If it's an image, delete the file from disk
-    if (msg.message_type === "image") {
+    // If it's an image or video, delete the file from disk
+    if (msg.message_type === "image" || msg.message_type === "video") {
       try {
-        let imagePath = msg.ciphertext;
+        let filePath = msg.ciphertext;
 
-        if (Buffer.isBuffer(imagePath)) {
-          imagePath = imagePath.toString("utf8");
+        if (Buffer.isBuffer(filePath)) {
+          filePath = filePath.toString("utf8");
         }
 
-        const fullPath = path.join(__dirname, "..", imagePath);
+        const fullPath = path.join(__dirname, "..", filePath);
         if (fs.existsSync(fullPath)) {
           fs.unlinkSync(fullPath);
         }
       } catch (fileErr) {
-        console.error("Error deleting image file:", fileErr);
+        console.error("Error deleting media file:", fileErr);
         // Continue with database deletion even if file deletion fails
       }
     }
@@ -227,19 +233,36 @@ export const getConversations = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Fetch conversations with last message, participant info, AND profile pictures
+    // First of all, get conversations the user is part of
+    const [userConversations] = await db.query(
+      `SELECT DISTINCT c.id
+       FROM conversations c
+       INNER JOIN conversation_participants cp
+         ON c.id = cp.conversation_id
+       WHERE cp.user_id = ? AND cp.left_at IS NULL`,
+      [userId]
+    );
+
+    if (userConversations.length === 0) {
+      return res.json({ conversations: [] });
+    }
+
+    const conversationIds = userConversations.map((c) => c.id);
+
+    // FULL conversations, including ALL participants AND created_by
     const [conversations] = await db.query(
       `SELECT
          c.id,
          c.is_group,
          c.group_name,
+         c.created_by,
          c.created_at,
          c.updated_at,
-         -- last message info (aggregate to satisfy ONLY_FULL_GROUP_BY)
+         -- last message info
          MAX(dm.ciphertext) AS last_message,
          MAX(dm.created_at) AS last_message_time,
          MAX(dm.sender_id) AS last_message_sender_id,
-         -- participant lists
+         -- ALL participant lists (not filtered by current user)
          GROUP_CONCAT(DISTINCT cp.user_id ORDER BY cp.user_id) AS participant_ids,
          GROUP_CONCAT(DISTINCT u.username ORDER BY cp.user_id SEPARATOR ',') AS participant_usernames,
          -- for 1:1 convos, fetch other user's username AND profile picture
@@ -274,16 +297,18 @@ export const getConversations = async (req, res) => {
            GROUP BY conversation_id
          ) m2 ON m1.conversation_id = m2.conversation_id AND m1.created_at = m2.max_created
        ) dm ON dm.conversation_id = c.id
-       WHERE cp.user_id = ? AND cp.left_at IS NULL
+       WHERE c.id IN (?)
        GROUP BY c.id
        ORDER BY last_message_time DESC, c.updated_at DESC`,
-      [userId, userId, userId]
+      [userId, userId, conversationIds]
     );
 
     const normalizedConversations = conversations.map((c) => {
+      // Parse participant_ids from GROUP_CONCAT string
       const participantIds = c.participant_ids
-        ? c.participant_ids.split(",").map(Number)
+        ? c.participant_ids.split(",").map((id) => parseInt(id.trim(), 10))
         : [];
+
       const participantUsernames = c.participant_usernames
         ? c.participant_usernames.split(",")
         : [];
@@ -294,9 +319,7 @@ export const getConversations = async (req, res) => {
 
       if (c.is_group) {
         displayName = c.group_name || "Unnamed Group";
-        // Groups don't have a single profile picture
       } else {
-        // Use other_user_username and profile picture if available
         if (otherUserUsername) {
           displayName = otherUserUsername;
           profilePicture = c.other_user_profile_picture || null;
@@ -307,11 +330,11 @@ export const getConversations = async (req, res) => {
         }
       }
 
-      // TODO: Maybe simplify?
       return {
         id: c.id,
         is_group: Boolean(c.is_group),
         group_name: c.group_name || null,
+        created_by: c.created_by || null,
         participant_ids: participantIds,
         participant_usernames: participantUsernames,
         display_name: displayName,
@@ -359,9 +382,12 @@ export const markMessageAsRead = async (req, res) => {
 
     // Don't mark your own messages as read
     if (msg.sender_id === userId) {
-      return res.status(400).json({ error: "Cannot mark your own message as read" });
+      return res
+        .status(400)
+        .json({ error: "Cannot mark your own message as read" });
     }
 
+    // Verify user is a participant
     const [participant] = await db.query(
       `SELECT * FROM conversation_participants
        WHERE conversation_id = ? AND user_id = ? AND left_at IS NULL`,
@@ -369,11 +395,13 @@ export const markMessageAsRead = async (req, res) => {
     );
 
     if (!participant.length) {
-      return res.status(403).json({ error: "Not a participant in this conversation" });
+      return res
+        .status(403)
+        .json({ error: "Not a participant in this conversation" });
     }
 
     if (isGroup) {
-      // For group chats: update read position (will create if doesn't exist)
+      // For group chats: update READ POSITION in conversation_read_positions
       await db.query(
         `INSERT INTO conversation_read_positions (conversation_id, user_id, last_read_message_id, updated_at)
          VALUES (?, ?, ?, UTC_TIMESTAMP())
@@ -383,18 +411,18 @@ export const markMessageAsRead = async (req, res) => {
         [conversationId, userId, messageId, messageId]
       );
     } else {
-      // For 1:1 chats: use the messages.read_at column directly
+      // For 1:1 chats: update the messages.read_at COLUMN DIRECTLY
       await db.query(
         `UPDATE messages
          SET read_at = UTC_TIMESTAMP()
-         WHERE id = ? AND read_at IS NULL`,
-        [messageId]
+         WHERE id = ? AND read_at IS NULL AND sender_id != ?`,
+        [messageId, userId]
       );
     }
 
-    return res.status(200).json({ success: true, messageId });
+    return res.status(200).json({ success: true, messageId, isGroup });
   } catch (err) {
-    console.error(err);
+    console.error("Error marking message as read:", err);
     return res.status(500).json({ error: "Failed to mark message as read" });
   }
 };
@@ -470,7 +498,9 @@ export const startConversationByUsername = async (req, res) => {
     );
 
     // Get the created conversation
-    const [rows] = await db.query(`SELECT * FROM conversations WHERE id = ?`, [conversationId]);
+    const [rows] = await db.query(`SELECT * FROM conversations WHERE id = ?`, [
+      conversationId,
+    ]);
 
     return res.status(201).json({
       ...rows[0],
@@ -568,34 +598,130 @@ export const sendMessageToUsername = async (req, res) => {
   }
 };
 
+export const sendVideoToUsername = async (req, res) => {
+  try {
+    const senderId = req.user.id;
+    const { recipientUsername } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No video file provided" });
+    }
+
+    if (!recipientUsername) {
+      return res.status(400).json({ error: "recipientUsername is required" });
+    }
+
+    const recipient = await findUserByUsername(recipientUsername);
+    if (!recipient)
+      return res.status(404).json({ error: "Recipient not found" });
+    if (recipient.id === senderId)
+      return res.status(400).json({ error: "Cannot message yourself" });
+
+    // Find existing 1:1 conversation
+    const [rows] = await db.query(
+      `SELECT c.id
+       FROM conversations c
+       WHERE c.is_group = 0
+         AND c.id IN (
+           SELECT cp1.conversation_id 
+           FROM conversation_participants cp1
+           JOIN conversation_participants cp2 
+             ON cp1.conversation_id = cp2.conversation_id
+           WHERE cp1.user_id = ? 
+             AND cp2.user_id = ?
+             AND cp1.left_at IS NULL 
+             AND cp2.left_at IS NULL
+         )
+       LIMIT 1`,
+      [senderId, recipient.id]
+    );
+
+    let conversationId;
+    if (!rows.length) {
+      // Create new conversation
+      const [result] = await db.query(
+        `INSERT INTO conversations (is_group, created_by, created_at) VALUES (0, ?, UTC_TIMESTAMP())`,
+        [senderId]
+      );
+      conversationId = result.insertId;
+
+      // Add participants
+      const participantRows = [
+        [conversationId, senderId, null],
+        [conversationId, recipient.id, null],
+      ];
+      const placeholders = participantRows.map(() => "(?, ?, ?)").join(",");
+      const params = participantRows.flat();
+
+      await db.query(
+        `INSERT INTO conversation_participants (conversation_id, user_id, left_at) VALUES ${placeholders}`,
+        params
+      );
+    } else {
+      conversationId = rows[0].id;
+    }
+
+    const videoUrl = `/uploads/videos/${req.file.filename}`;
+
+    const [msgResult] = await db.query(
+      `INSERT INTO messages
+        (conversation_id, sender_id, ciphertext, nonce, message_type, created_at)
+        VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
+      [conversationId, senderId, videoUrl, null, "video"]
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Video sent",
+      messageId: msgResult.insertId,
+      conversationId,
+      videoUrl: videoUrl,
+    });
+  } catch (err) {
+    console.error("Error in sendVideoToUsername:", err);
+    return res
+      .status(500)
+      .json({ error: err.message || "Failed to send video to user" });
+  }
+};
+
 // TODO: Might have to fix for pagination purposes
 export async function getMessagesByConversationId(req, res) {
-    try {
-        const userId = req.user.id;
-        const conversationId = req.params.conversationId;
+  try {
+    const userId = req.user.id;
+    const conversationId = req.params.conversationId;
 
-        // Verify user is a participant
-        const [participant] = await db.query(
-            `SELECT 1 FROM conversation_participants 
+    // Verify user is a participant
+    const [participant] = await db.query(
+      `SELECT 1 FROM conversation_participants 
              WHERE conversation_id = ? AND user_id = ? AND left_at IS NULL`,
-            [conversationId, userId]
-        );
+      [conversationId, userId]
+    );
 
-        if (!participant.length) {
-            return res.status(403).json({ error: "Not a participant in this conversation" });
-        }
+    if (!participant.length) {
+      return res
+        .status(403)
+        .json({ error: "Not a participant in this conversation" });
+    }
 
-        const before = req.query.before ? parseInt(req.query.before) : null;
-        let limit = parseInt(req.query.limit) || 20;
-        limit = Math.min(limit, 100); // safety cap
+    // Check if it's a group chat
+    const [convInfo] = await db.query(
+      `SELECT is_group FROM conversations WHERE id = ?`,
+      [conversationId]
+    );
 
-        let query;
-        let params;
+    const isGroup = convInfo.length > 0 && convInfo[0].is_group;
 
-        if (before) {
-            // Load OLDER messages (pagination backwards)
-            // Get messages with ID less than 'before', ordered DESC, then reverse in app
-            query = `
+    const before = req.query.before ? parseInt(req.query.before) : null;
+    let limit = parseInt(req.query.limit) || 20;
+    limit = Math.min(limit, 100); // safety cap
+
+    let query;
+    let params;
+
+    if (before) {
+      // Load OLDER messages (pagination backwards)
+      query = `
                 SELECT m.*, 
                        u.username as sender_username, 
                        u.profile_picture as sender_profile_picture
@@ -606,10 +732,10 @@ export async function getMessagesByConversationId(req, res) {
                 ORDER BY m.id DESC
                 LIMIT ?
             `;
-            params = [conversationId, before, limit];
-        } else {
-            // Initial load: get the LATEST messages
-            query = `
+      params = [conversationId, before, limit];
+    } else {
+      // Initial load: get the LATEST messages
+      query = `
                 SELECT m.*, 
                        u.username as sender_username, 
                        u.profile_picture as sender_profile_picture
@@ -619,36 +745,74 @@ export async function getMessagesByConversationId(req, res) {
                 ORDER BY m.id DESC
                 LIMIT ?
             `;
-            params = [conversationId, limit];
+      params = [conversationId, limit];
+    }
+
+    const [rows] = await db.query(query, params);
+
+    // Reverse to get chronological order (oldest to newest)
+    const messages = rows.reverse();
+
+    // Get the user's last read position
+    let lastReadMessageId = 0;
+
+    if (isGroup) {
+      // For group chats, use conversation_read_positions
+      const [readPos] = await db.query(
+        `SELECT last_read_message_id 
+                 FROM conversation_read_positions 
+                 WHERE conversation_id = ? AND user_id = ?`,
+        [conversationId, userId]
+      );
+
+      if (readPos.length > 0) {
+        lastReadMessageId = readPos[0].last_read_message_id;
+      }
+    }
+
+    // Mark messages as read/unread based on last read position
+    const messagesWithReadStatus = messages
+      .filter((msg) => msg.conversation_id === parseInt(conversationId))
+      .map((msg) => {
+        let isRead;
+
+        if (isGroup) {
+          // For groups: compare against last_read_message_id
+          isRead = msg.id <= lastReadMessageId || msg.sender_id === userId;
+        } else {
+          // For 1:1: use the read_at column
+          isRead = !!msg.read_at || msg.sender_id === userId;
         }
 
-        const [rows] = await db.query(query, params);
+        return {
+          ...msg,
+          is_read: isRead,
+        };
+      });
 
-        // Reverse to get chronological order (oldest to newest)
-        const messages = rows.reverse();
-
-        // Check if there are more older messages
-        let hasMore = false;
-        if (messages.length > 0) {
-            const oldestId = messages[0].id;
-            const [olderCheck] = await db.query(
-                `SELECT 1 FROM messages 
+    // Check if there are more older messages
+    let hasMore = false;
+    if (messages.length > 0) {
+      const oldestId = messages[0].id;
+      const [olderCheck] = await db.query(
+        `SELECT 1 FROM messages 
                  WHERE conversation_id = ? AND id < ? 
                  LIMIT 1`,
-                [conversationId, oldestId]
-            );
-            hasMore = olderCheck.length > 0;
-        }
-
-        return res.json({
-            messages: messages,
-            hasMore: hasMore
-        });
-
-    } catch (err) {
-        console.error("Error in getMessagesByConversationId:", err);
-        return res.status(500).json({ error: "Failed to load messages" });
+        [conversationId, oldestId]
+      );
+      hasMore = olderCheck.length > 0;
     }
+
+    return res.json({
+      messages: messagesWithReadStatus,
+      hasMore: hasMore,
+      isGroup: isGroup,
+      conversationId: parseInt(conversationId),
+    });
+  } catch (err) {
+    console.error("Error in getMessagesByConversationId:", err);
+    return res.status(500).json({ error: "Failed to load messages" });
+  }
 }
 
 export const getMessagesWithUsername = async (req, res) => {
@@ -726,39 +890,55 @@ export const deleteConversation = async (req, res) => {
         .json({ message: "You are not allowed to delete this conversation" });
     }
 
-    const [imageMessages] = await db.execute(
-      "SELECT ciphertext FROM messages WHERE conversation_id = ? AND message_type = 'image'",
+    // Get all image and video messages
+    const [mediaMessages] = await db.execute(
+      "SELECT ciphertext, message_type FROM messages WHERE conversation_id = ? AND message_type IN ('image', 'video')",
       [convId]
     );
 
     let deletedImagesCount = 0;
-    for (const msg of imageMessages) {
+    let deletedVideosCount = 0;
+
+    for (const msg of mediaMessages) {
       try {
-        let imagePath = msg.ciphertext;
-        if (Buffer.isBuffer(imagePath)) {
-          imagePath = imagePath.toString("utf8");
+        let filePath = msg.ciphertext;
+        if (Buffer.isBuffer(filePath)) {
+          filePath = filePath.toString("utf8");
         }
 
-        const fullPath = path.join(__dirname, "..", imagePath);
+        const fullPath = path.join(__dirname, "..", filePath);
 
         if (fs.existsSync(fullPath)) {
           fs.unlinkSync(fullPath);
-          deletedImagesCount++;
+          if (msg.message_type === "image") {
+            deletedImagesCount++;
+          } else if (msg.message_type === "video") {
+            deletedVideosCount++;
+          }
         }
       } catch (err) {
-        console.error(`Error deleting image file:`, err);
+        console.error(`Error deleting media file:`, err);
       }
     }
 
     // Delete read positions (foreign key constraint)
-    await db.execute("DELETE FROM conversation_read_positions WHERE conversation_id = ?", [convId]);
-    await db.execute("DELETE FROM messages WHERE conversation_id = ?", [convId]);
-    await db.execute("DELETE FROM conversation_participants WHERE conversation_id = ?", [convId]);
+    await db.execute(
+      "DELETE FROM conversation_read_positions WHERE conversation_id = ?",
+      [convId]
+    );
+    await db.execute("DELETE FROM messages WHERE conversation_id = ?", [
+      convId,
+    ]);
+    await db.execute(
+      "DELETE FROM conversation_participants WHERE conversation_id = ?",
+      [convId]
+    );
     await db.execute("DELETE FROM conversations WHERE id = ?", [convId]);
 
     res.json({
       message: "Conversation deleted successfully",
       imagesDeleted: deletedImagesCount,
+      videosDeleted: deletedVideosCount,
     });
   } catch (err) {
     console.error(err);
@@ -938,6 +1118,50 @@ export const createGroupChat = async (req, res) => {
   }
 };
 
+export const getGroupParticipants = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const conversationId = req.params.conversationId;
+
+    // Verify user is a participant and it's a group
+    const [participant] = await db.query(
+      `SELECT c.is_group, c.created_by 
+       FROM conversations c
+       JOIN conversation_participants cp ON c.id = cp.conversation_id
+       WHERE c.id = ? AND cp.user_id = ? AND cp.left_at IS NULL`,
+      [conversationId, userId]
+    );
+
+    if (!participant.length) {
+      return res.status(403).json({ error: "Not a member of this group" });
+    }
+
+    if (!participant[0].is_group) {
+      return res
+        .status(400)
+        .json({ error: "This is not a group conversation" });
+    }
+
+    // Get all participants with their profile pictures
+    const [participants] = await db.query(
+      `SELECT u.id as user_id, u.username, u.profile_picture
+       FROM conversation_participants cp
+       JOIN users u ON u.id = cp.user_id
+       WHERE cp.conversation_id = ? AND cp.left_at IS NULL
+       ORDER BY u.username ASC`,
+      [conversationId]
+    );
+
+    return res.json({
+      participants: participants,
+      created_by: participant[0].created_by,
+    });
+  } catch (err) {
+    console.error("Error fetching group participants:", err);
+    return res.status(500).json({ error: "Failed to fetch participants" });
+  }
+};
+
 export const sendMessageToGroup = async (req, res) => {
   try {
     const senderId = req.user.id;
@@ -987,6 +1211,63 @@ export const sendMessageToGroup = async (req, res) => {
   }
 };
 
+export const sendVideoToGroup = async (req, res) => {
+  try {
+    const senderId = req.user.id;
+    const { conversationId } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No video file provided" });
+    }
+
+    if (!conversationId) {
+      return res.status(400).json({ error: "conversationId is required" });
+    }
+
+    // Verify user is a participant and it's a group
+    const [participant] = await db.query(
+      `SELECT c.is_group FROM conversations c
+       JOIN conversation_participants cp ON c.id = cp.conversation_id
+       WHERE c.id = ? AND cp.user_id = ? AND cp.left_at IS NULL`,
+      [conversationId, senderId]
+    );
+
+    if (!participant.length) {
+      return res
+        .status(403)
+        .json({ error: "You are not a member of this group" });
+    }
+
+    if (!participant[0].is_group) {
+      return res
+        .status(400)
+        .json({ error: "This is not a group conversation" });
+    }
+
+    const videoUrl = `/uploads/videos/${req.file.filename}`;
+
+    const [msgResult] = await db.query(
+      `INSERT INTO messages
+        (conversation_id, sender_id, ciphertext, nonce, message_type, created_at)
+        VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
+      [conversationId, senderId, videoUrl, null, "video"]
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Video sent to group",
+      messageId: msgResult.insertId,
+      conversationId,
+      videoUrl: videoUrl,
+    });
+  } catch (err) {
+    console.error("Error in sendVideoToGroup:", err);
+    return res
+      .status(500)
+      .json({ error: err.message || "Failed to send video to group" });
+  }
+};
+
 export const addParticipantsToGroup = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -1000,7 +1281,7 @@ export const addParticipantsToGroup = async (req, res) => {
 
     // Check that the requester is part of the group & that it's a group chat
     const [rows] = await db.query(
-      `SELECT c.is_group 
+      `SELECT c.is_group, c.created_by
        FROM conversations c
        JOIN conversation_participants cp 
             ON c.id = cp.conversation_id
@@ -1016,6 +1297,11 @@ export const addParticipantsToGroup = async (req, res) => {
         .json({ error: "Not authorized to add participants" });
     }
 
+    // Optional: Only allow creator to add participants
+    // if (rows[0].created_by !== userId) {
+    //   return res.status(403).json({ error: "Only the group creator can add participants" });
+    // }
+
     // Convert usernames → user IDs
     const userIds = [];
     for (const username of usernames) {
@@ -1026,16 +1312,18 @@ export const addParticipantsToGroup = async (req, res) => {
       userIds.push(user.id);
     }
 
-    if (userIds.length) {
-      // Build placeholders and params to insert multiple rows safely
-      const participantRows = userIds.map((id) => [conversationId, id, null]);
-      const placeholders = participantRows.map(() => "(?, ?, ?)").join(",");
-      const params = participantRows.flat();
-
-      await db.query(
-        `INSERT IGNORE INTO conversation_participants (conversation_id, user_id, left_at) VALUES ${placeholders}`,
-        params
-      );
+    if (userIds.length > 0) {
+      // For each user, either insert new row OR update existing row to set left_at = NULL
+      for (const userIdToAdd of userIds) {
+        await db.query(
+          `INSERT INTO conversation_participants (conversation_id, user_id, joined_at, left_at)
+           VALUES (?, ?, UTC_TIMESTAMP(), NULL)
+           ON DUPLICATE KEY UPDATE 
+             left_at = NULL,
+             joined_at = UTC_TIMESTAMP()`,
+          [conversationId, userIdToAdd]
+        );
+      }
     }
 
     return res.json({ success: true, message: "Participants added" });

@@ -17,8 +17,33 @@
   color: #888;
 }
 
+/* Date Separator */
+.date-separator {
+  display: flex;
+  align-items: center;
+  margin: 20px 0 15px 0;
+  gap: 12px;
+}
+
+.date-separator-line {
+  flex: 1;
+  height: 1px;
+  background-color: #d0d2d6;
+}
+
+.date-separator-text {
+  color: #65676b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 4px 12px;
+  background-color: #e4e6eb;
+  border-radius: 12px;
+}
+
 .message-row {
-  margin: 5px 0;
+  margin: 2px 0;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -38,6 +63,7 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 3px;
+  margin-top: 8px;
 }
 
 .group-sender-avatar {
@@ -98,6 +124,22 @@
   opacity: 0.7;
   font-style: italic;
   margin-left: 4px;
+}
+
+/* Message timestamp */
+.message-timestamp {
+  font-size: 10px;
+  color: #8a8d91;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.timestamp-sent {
+  text-align: right;
+}
+
+.timestamp-received {
+  text-align: left;
 }
 
 .message-image {
@@ -172,7 +214,7 @@
 .unread-divider {
   display: flex;
   align-items: center;
-  margin: 10px 0;
+  margin: 12px 0;
   gap: 10px;
 }
 

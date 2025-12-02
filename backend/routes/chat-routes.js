@@ -13,15 +13,18 @@ import {
     deleteMessage,
     // Group chat functions
     createGroupChat,
+    getGroupParticipants,
     sendMessageToGroup,
     sendImageToGroup,
+    sendVideoToUsername,
+    sendVideoToGroup,
     addParticipantsToGroup,
     removeParticipantFromGroup,
     leaveGroup,
     updateGroupName
 } from '../controllers/chat-controller.js';
 import { authMiddleware } from '../middleware/auth-middleware.js';
-import { uploadImage } from '../middleware/upload-middleware.js';
+import { uploadImage, uploadVideo } from '../middleware/upload-middleware.js';
 
 const router = express.Router();
 
@@ -43,10 +46,14 @@ router.put('/message/:messageId', editMessage);
 router.delete('/message/:messageId', deleteMessage);
 // Create a new group chat
 router.post('/group/create', createGroupChat);
+// Get all participants in a group with their profile pictures
+router.get('/group/:conversationId/participants', getGroupParticipants);
 // Send text message to group
 router.post('/group/send', sendMessageToGroup);
 // Send image message to group
 router.post('/group/send-image', uploadImage, sendImageToGroup);
+// Send video message to group
+router.post('/group/send-video', uploadVideo, sendVideoToGroup);
 // Add participants to group
 router.post('/group/:conversationId/add-participants', addParticipantsToGroup);
 // Remove participant from group
@@ -61,6 +68,8 @@ router.post('/start-by-username', startConversationByUsername);
 router.get('/messages-by-username/:username', getMessagesWithUsername);
 // Send text message to user
 router.post('/send-by-username', sendMessageToUsername);
+// Send video message to user
+router.post('/send-video-by-username', uploadVideo, sendVideoToUsername);
 // Send image message to user
 router.post('/send-image-by-username', uploadImage, sendImageToUsername);
 

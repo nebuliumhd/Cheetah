@@ -50,13 +50,28 @@ app.use("/api/chat", authMiddleware, chatRoutes);
 app.use("/api/feed", feedRoutes);
 app.use("/api/auth", authRoutes);
 
-// Serve React build (for production)
-app.use(express.static(path.join(__dirname, "../frontend/build")));
+// Check if build folder exists before serving React
+const buildPath = path.join(__dirname, "../frontend/build");
+const buildExists = fs.existsSync(buildPath);
 
-// Catch-all route for React (MUST BE LAST)
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
-});
+if (buildExists) {
+  console.log("Serving React production build");
+  // Serve React build (for prod)
+  app.use(express.static(buildPath));
+  // Catch-all route for React (MUST BE LAST)
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(buildPath, "index.html"));
+  });
+} else {
+  console.log("Build folder not found - running in API-only mode\nRun 'npm run build' in frontend folder to create production build");
+  // Helpful message for any unmatched routes (possibly remove later?)
+  app.get("*", (req, res) => {
+    res.status(404).json({ 
+      error: "API endpoint not found",
+      message: "Server is running in development mode. Start React dev server separately."
+    });
+  });
+}
 
 // SSL;
 const certPath = path.join(__dirname, "certs");

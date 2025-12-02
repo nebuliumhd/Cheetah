@@ -51,7 +51,7 @@ const ConversationItem = memo(({ conv, onSelect, onDelete, apiBase }) => {
 
 ConversationItem.displayName = "ConversationItem";
 
-export default function ConversationList({ onSelect }) {
+export default function ConversationList({ onSelect, conversations: propConversations }) {
   const [conversations, setConversations] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [error, setError] = useState("");
@@ -64,8 +64,17 @@ export default function ConversationList({ onSelect }) {
   const API_BASE =
     process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
-  // Load conversations
+  // Update conversations when prop changes
   useEffect(() => {
+    if (propConversations) {
+      setConversations(propConversations);
+    }
+  }, [propConversations]);
+
+  // Load conversations only if no prop provided (for backwards compatibility)
+  useEffect(() => {
+    if (propConversations) return; // Skip if conversations are provided as prop
+
     let interval;
     let isActive = true;
 
@@ -87,22 +96,8 @@ export default function ConversationList({ onSelect }) {
           ? data.conversations
           : [];
 
-        setConversations((prev) => {
-          const prevIds = prev.map((c) => c.id).sort();
-          const newIds = newConversations.map((c) => c.id).sort();
-
-          const changed =
-            prevIds.length !== newIds.length ||
-            prevIds.some((id, i) => id !== newIds[i]);
-
-          if (changed) {
-            setLoadingConversations(false);
-            return newConversations;
-          }
-
-          setLoadingConversations(false);
-          return prev;
-        });
+        setConversations(newConversations);
+        setLoadingConversations(false);
       } catch (err) {
         console.error(err);
         setError("Failed to load conversations");
@@ -129,7 +124,7 @@ export default function ConversationList({ onSelect }) {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [token, API_BASE]);
+  }, [token, API_BASE, propConversations]);
 
   const loadOptions = async (inputValue) => {
     if (!inputValue.trim()) return [];

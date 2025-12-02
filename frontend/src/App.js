@@ -5,7 +5,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import Landing from "./Pages/Landing";
@@ -21,11 +21,6 @@ function App() {
 
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
-  useEffect(() => {
-    console.log("User changed:", user);
-    console.log("Profile picture:", user?.profile_picture);
-  }, [user]);
-
   const hideNavbarOnPaths = [
     "/main",
     "/update",
@@ -40,14 +35,12 @@ function App() {
     navigate("/login");
   };
 
-  // Get profile picture URL
-  const profilePicUrl = user?.profile_picture
-    ? `${API_BASE}${user.profile_picture}`
-    : `${API_BASE}/uploads/profiles/default-profile.jpg`;
-
-  console.log("Full user object:", user);
-  console.log("user.profile_picture value:", user?.profile_picture);
-  console.log("Profile pic URL:", profilePicUrl);
+  // Memoize profile picture URL to prevent recalculation on every render
+  const profilePicUrl = useMemo(() => {
+    return user?.profile_picture
+      ? `${API_BASE}${user.profile_picture}`
+      : `${API_BASE}/uploads/profiles/default-profile.jpg`;
+  }, [user?.profile_picture, API_BASE]);
 
   return (
     <div
@@ -84,7 +77,7 @@ function App() {
             >
               <img
                 src={profilePicUrl}
-                alt={user.username}
+                alt={user?.username || "User"}
                 style={{
                   width: "36px",
                   height: "36px",
@@ -93,10 +86,13 @@ function App() {
                   border: "2px solid white",
                 }}
                 onError={(e) => {
-                  e.target.src = `${API_BASE}/uploads/images/default-profile.jpg`;
+                  // Only set fallback once to prevent infinite loops
+                  if (e.target.src !== `${API_BASE}/uploads/profiles/default-profile.jpg`) {
+                    e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
+                  }
                 }}
               />
-              <span>Hello, {user.username}!</span>
+              <span>Hello, {user?.username}!</span>
             </div>
             <button
               onClick={handleLogout}
@@ -127,12 +123,10 @@ function App() {
 
       <div style={{ flex: 1, overflow: "auto", width: "100%" }}>
         <Routes>
-          {/* Public routes - anyone can access */}
           <Route path="/landing" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected routes - must be logged in */}
           <Route
             path="/chat"
             element={
@@ -142,7 +136,6 @@ function App() {
             }
           />
 
-          {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/landing" replace />} />
         </Routes>
       </div>
