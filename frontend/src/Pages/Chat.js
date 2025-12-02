@@ -20,6 +20,14 @@ export default function Chat() {
 
   // Load conversations
   useEffect(() => {
+    // Don't fetch if no token
+    if (!token) {
+      console.error("No token available, cannot fetch conversations");
+      return;
+    }
+
+    let isActive = true;
+
     const loadConversations = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/chat`, {
@@ -29,9 +37,15 @@ export default function Chat() {
           },
         });
 
-        if (!res.ok) throw new Error("Failed to fetch conversations");
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || "Failed to fetch conversations");
+        }
 
         const data = await res.json();
+        
+        if (!isActive) return; // Component unmounted
+        
         const newConversations = Array.isArray(data.conversations)
           ? data.conversations
           : [];
@@ -53,7 +67,11 @@ export default function Chat() {
     };
 
     loadConversations();
-  }, [API_BASE, token, refreshTrigger, selectedConversation?.id]);
+
+    return () => {
+      isActive = false;
+    };
+  }, [API_BASE, token, refreshTrigger]); // REMOVED selectedConversation?.id from dependencies
 
   const handleMessageSent = () => {
     setRefreshTrigger((prev) => prev + 1);
@@ -93,6 +111,24 @@ export default function Chat() {
     
     return 0;
   };
+
+  // Show loading state if no token
+  if (!token) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+          fontSize: "16px",
+          color: "#65676b",
+        }}
+      >
+        Please log in to access chat
+      </div>
+    );
+  }
 
   return (
     <div

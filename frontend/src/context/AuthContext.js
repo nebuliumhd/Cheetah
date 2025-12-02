@@ -21,48 +21,24 @@ export const AuthProvider = ({ children }) => {
 
   // Check authentication status on mount
   useEffect(() => {
-    const verifyAuth = async () => {
+    const loadAuthFromStorage = () => {
       const token = localStorage.getItem('token');
+      const storedUsername = sessionStorage.getItem('username');
+      const storedUserId = sessionStorage.getItem('userId');
+      const storedProfilePic = sessionStorage.getItem('profile_picture');
       
-      if (!token) {
-        setLoading(false);
-        return;
+      if (token && storedUsername && storedUserId) {
+        // Restore from session storage
+        setUsername(storedUsername);
+        setUserId(storedUserId);
+        setProfilePicture(storedProfilePic || null);
       }
-
-      try {
-        // Verify token with backend
-        const res = await fetch(`${API_BASE}/api/auth/verify`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          console.log("Data from verify:", data);
-          console.log("Profile picture value:", data.profile_picture);
-          setUsername(data.username);
-          setUserId(data.userId);
-          setProfilePicture(data.profile_picture || null);
-          sessionStorage.setItem('username', data.username);
-          sessionStorage.setItem('userId', data.userId);
-          if (data.profile_picture) {
-            sessionStorage.setItem('profile_picture', data.profile_picture);
-          }
-        } else {
-          // Token invalid - clear everything
-          logout();
-        }
-      } catch (err) {
-        console.error('Auth verification failed:', err);
-        logout();
-      } finally {
-        setLoading(false);
-      }
+      
+      setLoading(false);
     };
 
-    verifyAuth();
-  }, [API_BASE, logout]);
+    loadAuthFromStorage();
+  }, []);
 
   const login = (name, id, token, profilePic = null) => {
     setUsername(name);

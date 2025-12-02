@@ -5,9 +5,10 @@ import "./ConversationList.css";
 // Memoized conversation item
 const ConversationItem = memo(({ conv, onSelect, onDelete, apiBase }) => {
   const isGroup = conv.is_group;
-  const displayName = conv.display_name || (isGroup ? "Unnamed Group" : "Unknown");
+  const displayName =
+    conv.display_name || (isGroup ? "Unnamed Group" : "Unknown");
   const memberCount = conv.participant_ids?.length || 0;
-  
+
   // Profile picture URL - use default if not set
   const profilePicUrl = conv.profile_picture
     ? `${apiBase}${conv.profile_picture}`
@@ -18,8 +19,8 @@ const ConversationItem = memo(({ conv, onSelect, onDelete, apiBase }) => {
       <div className="conv-item-main" onClick={() => onSelect(conv)}>
         <div className="conv-item-title">
           {!isGroup && (
-            <img 
-              src={profilePicUrl} 
+            <img
+              src={profilePicUrl}
               alt={displayName}
               className="conv-item-avatar"
               onError={(e) => {
@@ -51,7 +52,10 @@ const ConversationItem = memo(({ conv, onSelect, onDelete, apiBase }) => {
 
 ConversationItem.displayName = "ConversationItem";
 
-export default function ConversationList({ onSelect, conversations: propConversations }) {
+export default function ConversationList({
+  onSelect,
+  conversations: propConversations,
+}) {
   const [conversations, setConversations] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [error, setError] = useState("");
@@ -61,8 +65,7 @@ export default function ConversationList({ onSelect, conversations: propConversa
   const [selectedMembers, setSelectedMembers] = useState([]);
 
   const token = localStorage.getItem("token");
-  const API_BASE =
-    process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
   // Update conversations when prop changes
   useEffect(() => {
@@ -74,6 +77,12 @@ export default function ConversationList({ onSelect, conversations: propConversa
   // Load conversations only if no prop provided (for backwards compatibility)
   useEffect(() => {
     if (propConversations) return; // Skip if conversations are provided as prop
+
+    if (!token) {
+      console.log("No token found, skipping conversation fetch");
+      setLoadingConversations(false);
+      return;
+    }
 
     let interval;
     let isActive = true;
@@ -131,9 +140,7 @@ export default function ConversationList({ onSelect, conversations: propConversa
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/chat/search-users?q=${encodeURIComponent(
-          inputValue
-        )}`,
+        `${API_BASE}/api/chat/search-users?q=${encodeURIComponent(inputValue)}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -156,9 +163,7 @@ export default function ConversationList({ onSelect, conversations: propConversa
     if (!selectedUser) return;
 
     if (
-      conversations.some(
-        (c) => c.other_user_username === selectedUser.value
-      )
+      conversations.some((c) => c.other_user_username === selectedUser.value)
     ) {
       setError("Conversation with this user already exists!");
       setTimeout(() => setError(""), 3000);
@@ -261,29 +266,26 @@ export default function ConversationList({ onSelect, conversations: propConversa
       return;
 
     try {
-      const res = await fetch(
-        `${API_BASE}/api/chat/conversation/${convId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await fetch(`${API_BASE}/api/chat/conversation/${convId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!res.ok) throw new Error("Failed to delete conversation");
 
       const data = await res.json();
 
-      setConversations((prev) =>
-        prev.filter((c) => c.id !== convId)
-      );
+      setConversations((prev) => prev.filter((c) => c.id !== convId));
 
       onSelect(null);
 
       alert(
-        `Conversation deleted successfully. ${data.imagesDeleted || 0} image(s) removed.`
+        `Conversation deleted successfully. ${
+          data.imagesDeleted || 0
+        } image(s) removed.`
       );
     } catch (err) {
       alert("Error deleting conversation");
@@ -337,14 +339,8 @@ export default function ConversationList({ onSelect, conversations: propConversa
 
       {/* Group Modal */}
       {showGroupModal && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowGroupModal(false)}
-        >
-          <div
-            className="modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="modal-overlay" onClick={() => setShowGroupModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>Create Group Chat</h3>
 
             <input
@@ -369,10 +365,7 @@ export default function ConversationList({ onSelect, conversations: propConversa
             />
 
             <div className="modal-actions">
-              <button
-                className="modal-create-button"
-                onClick={createGroupChat}
-              >
+              <button className="modal-create-button" onClick={createGroupChat}>
                 Create Group
               </button>
 

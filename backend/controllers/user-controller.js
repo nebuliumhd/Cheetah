@@ -1,5 +1,8 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { db }  from "../db.js";
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // REGISTER USER
 export const registerUser = async (req, res) => {
@@ -61,14 +64,23 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid password.", body: password });
     }
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
     res.status(200).json({
       message: "Login successful",
+      token,
       user: {
         id: user.id,
         first_name: user.first_name,
         last_name: user.last_name,
         username: user.username,
         email: user.email,
+        profile_picture: user.profile_picture,
       },
     });
 
