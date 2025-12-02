@@ -5,7 +5,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import Landing from "./Pages/Landing";
@@ -33,13 +33,8 @@ function App() {
 
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
-  useEffect(() => {
-    console.log("User changed:", user);
-    console.log("Profile picture:", user?.profile_picture);
-  }, [user]);
-
   const hideNavbarOnPaths = [
-    "/main",
+    "/profile",
     "/update",
     "/delete",
     "/register",
@@ -67,14 +62,12 @@ function App() {
     navigate("/friends");
   };
 
-  // Get profile picture URL
-  const profilePicUrl = user?.profile_picture
-    ? `${API_BASE}${user.profile_picture}`
-    : `${API_BASE}/uploads/profiles/default-profile.jpg`;
-
-  console.log("Full user object:", user);
-  console.log("user.profile_picture value:", user?.profile_picture);
-  console.log("Profile pic URL:", profilePicUrl);
+  // Memoize profile picture URL to prevent recalculation on every render
+  const profilePicUrl = useMemo(() => {
+    return user?.profile_picture
+      ? `${API_BASE}${user.profile_picture}`
+      : `${API_BASE}/uploads/profiles/default-profile.jpg`;
+  }, [user?.profile_picture, API_BASE]);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
@@ -149,12 +142,10 @@ function App() {
 
       <div style={{ flex: 1, overflow: "auto", width: "100%" }}>
         <Routes>
-          {/* Public routes - anyone can access */}
           <Route path="/landing" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected routes - must be logged in */}
           <Route
             path="/chat"
             element={
@@ -199,7 +190,14 @@ function App() {
             </ProtectedRoute>
           }
           />
-
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile /> 
+              </ProtectedRoute>
+            }
+          />
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/landing" replace />} />
         </Routes>

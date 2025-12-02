@@ -15,7 +15,7 @@ const Login = () => {
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
   if (isLoggedIn) {
-    return <Navigate to="/main" replace />;
+    return <Navigate to="/profile" replace />;
   }
 
   const handleChange = (e) => {
@@ -47,7 +47,7 @@ const Login = () => {
         throw new Error(data.message || "Login failed.");
       }
 
-      login(data.user.username, data.user.id, data.token);
+      login(data.user.username, data.user.id, data.token, data.user.profile_picture);
 
       setSuccess("Login successful! Redirecting to your profile!");
       // setTimeout(() => navigate("/landing"), 2000); Moved to App.js

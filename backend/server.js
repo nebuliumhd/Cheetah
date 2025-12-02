@@ -22,13 +22,28 @@ app.use('/api/users', userRoutes)
 app.use('/api/users/register', userRoutes)
 app.use('/api/users/login', userRoutes)
 
-// Serve React build
-app.use(express.static(path.join(__dirname, '../frontend/build')));
+// Check if build folder exists before serving React
+const buildPath = path.join(__dirname, "../frontend/build");
+const buildExists = fs.existsSync(buildPath);
 
-// Catch-all route for React (must be after API routes)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-});
+if (buildExists) {
+  console.log("Serving React production build");
+  // Serve React build (for prod)
+  app.use(express.static(buildPath));
+  // Catch-all route for React (MUST BE LAST)
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(buildPath, "index.html"));
+  });
+} else {
+  console.log("Build folder not found - running in API-only mode\nRun 'npm run build' in frontend folder to create production build");
+  // Helpful message for any unmatched routes (possibly remove later?)
+  app.get("*", (req, res) => {
+    res.status(404).json({ 
+      error: "API endpoint not found",
+      message: "Server is running in development mode. Start React dev server separately."
+    });
+  });
+}
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
