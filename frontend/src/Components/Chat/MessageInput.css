@@ -1,6 +1,6 @@
 .message-input-wrapper {
-  border-top: 1px solid #ccc;
-  background-color: #fff;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
 }
 
 /* Error Banner */
@@ -22,8 +22,8 @@
 /* Image & Video Preview Section */
 .preview-container {
   padding: 10px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #ccc;
+  background-color: var(--hover-bg);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   gap: 10px;
   overflow-x: auto;
@@ -40,7 +40,7 @@
   width: 100px;
   border-radius: 8px;
   object-fit: cover;
-  border: 2px solid #ddd;
+  border: 2px solid var(--border-color);
 }
 
 .preview-video-item {
@@ -49,7 +49,7 @@
   width: 100px;
   border-radius: 8px;
   overflow: hidden;
-  border: 2px solid #ddd;
+  border: 2px solid var(--border-color);
 }
 
 .preview-video {
@@ -122,6 +122,7 @@
   display: flex;
   padding: 10px;
   align-items: center;
+  background-color: var(--bg-secondary);
   gap: 4px;
 }
 
@@ -129,7 +130,8 @@
   padding: 8px;
   border-radius: 50%;
   border: none;
-  background-color: #f0f0f0;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 20px;
   width: 36px;
@@ -141,7 +143,7 @@
 }
 
 .attach-btn:hover:not(:disabled) {
-  background-color: #e0e0e0;
+  background-color: var(--border-color);
 }
 
 .attach-btn:disabled {
@@ -153,15 +155,22 @@
   flex-grow: 1;
   padding: 8px 12px;
   border-radius: 20px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
   outline: none;
+}
+
+.text-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
 
 .send-btn {
   margin-left: 4px;
   padding: 8px 16px;
   border-radius: 20px;
-  background-color: #ccc;
+  background-color: var(--border-color);
   color: white;
   border: none;
   cursor: not-allowed;
@@ -170,10 +179,11 @@
 }
 
 .send-btn.active {
-  background-color: #0084ff;
+  background-color: var(--button-primary-hover);
   cursor: pointer;
 }
 
 .send-btn:disabled {
+  background-color: var(--border-color);
   opacity: 0.6;
 }

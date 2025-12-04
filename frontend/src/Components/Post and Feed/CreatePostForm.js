@@ -1,14 +1,15 @@
 import { useState } from "react";
+import "../../App.css";
 import "./CreatePostForm.css";
 
 export default function CreatePostForm({ onPostCreated }) {
-  const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
-  const token = localStorage.getItem("token");
+  const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
   const [text, setText] = useState("");
   const [files, setFiles] = useState([]);
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [visibility, setVisibility] = useState("everyone");
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files);
@@ -27,9 +28,11 @@ export default function CreatePostForm({ onPostCreated }) {
 
     const formData = new FormData();
     formData.append("text", text);
+    formData.append("visibility", visibility);
 
-    files.forEach((file) => formData.append("images", file));
+    files.forEach((file) => formData.append("attachments", file));
 
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${API}/api/posts/create`, {
         method: "POST",
@@ -71,6 +74,18 @@ export default function CreatePostForm({ onPostCreated }) {
           onChange={(e) => setText(e.target.value)}
         />
 
+        <div style={{ marginBottom: "10px" }}>
+          <label>Visibility: </label>
+          <select
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value)}
+          >
+            <option value="everyone">Everyone</option>
+            <option value="friends">Friends Only</option>
+            <option value="private">Private</option>
+          </select>
+        </div>
+
         {preview.length > 0 && (
           <div className="preview-container">
             {preview.map((src, i) => (
@@ -90,9 +105,11 @@ export default function CreatePostForm({ onPostCreated }) {
           />
         </label>
 
-        <button className="submit-post" type="submit" disabled={loading}>
-          {loading ? "Posting..." : "Post"}
-        </button>
+        <div className="submit-container">
+          <button className="submit-post" type="submit" disabled={loading}>
+            {loading ? "Posting..." : "Post"}
+          </button>
+        </div>
       </form>
     </div>
   );

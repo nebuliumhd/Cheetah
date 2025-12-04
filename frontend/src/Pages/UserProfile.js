@@ -1,17 +1,49 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "../App.css";
 import "./UserProfile.css";
 import DeleteAccount from "../Components/User Settings/DeleteAccount";
 import UpdateAccount from "../Components/User Settings/UpdateAccount";
 import PFPOverlayModal from "../Components/User Settings/PFPOverlayModal";
 import Bio from "../Components/User Settings/Bio";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Main = () => {
-  const { logout, user, updateUser } = useAuth();
+  const { logout, user, updateProfilePicture } = useAuth();
   const navigate = useNavigate();
 
   const [isModalOpen, setModalOpen] = useState(false);
+  const [currentBio, setCurrentBio] = useState("");
+
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+
+  // Fetch user's current bio on mount
+  useEffect(() => {
+    const fetchUserBio = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `${API_BASE}/api/users/username/${user?.username}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const data = await res.json();
+        console.log("User data:", data); // Debug
+        if (data.user?.bio) {
+          setCurrentBio(data.user.bio);
+        } else {
+          setCurrentBio(""); // Set to empty string if no bio
+        }
+      } catch (err) {
+        console.error("Failed to fetch bio:", err);
+      }
+    };
+
+    if (user?.username) {
+      fetchUserBio();
+    }
+  }, [user?.username, API_BASE]);
 
   const handleLogout = () => {
     logout();
@@ -20,43 +52,45 @@ const Main = () => {
 
   return (
     <div className="Main-Page">
-      <h1 className="Contact-Title">
-        Welcome to your ChetChat Account {user ? `, ${user.username}` : ""}!
-      </h1>
+      <h3 className="Contact-Title">
+        Welcome to your ChetChat account{user ? `, ${user.username}` : ""}!
+      </h3>
 
-      {/* 🌟 Display profile picture */}
-      <div style={{ marginBottom: "20px" }}>
+      <div>
         <img
-          src={user?.profile_picture || "/default-avatar.png"}
+          src={
+            user?.profile_picture
+              ? `${API_BASE}${user.profile_picture}`
+              : `${API_BASE}/uploads/profiles/default-profile.jpg`
+          }
           alt="Profile"
           className="profile-avatar"
           onClick={() => setModalOpen(true)}
           style={{ cursor: "pointer" }}
         />
+      </div>
+
+      <Bio currentBio={currentBio} />
+
+      <div className="account-buttons">
+        <PFPOverlayModal
+          isOpen={isModalOpen}
+          onClose={() => setModalOpen(false)}
+          currentProfile={user?.profile_picture}
+          onUploadSuccess={(newPath) => {
+            // Update profile picture in AuthContext
+            updateProfilePicture(newPath);
+            setModalOpen(false);
+          }}
+        />
         <button className="custom-button1" onClick={() => setModalOpen(true)}>
           Change Profile Picture
         </button>
+        <DeleteAccount />
+        <UpdateAccount />
       </div>
 
-      {/* 🌟 Profile Picture Overlay Modal */}
-      <PFPOverlayModal
-        isOpen={isModalOpen}
-        onClose={() => setModalOpen(false)}
-        currentProfile={user?.profile_picture}
-        onUploadSuccess={(newPath) => {
-          // Update user profile picture in AuthContext
-          updateUser({ ...user, profile_picture: newPath });
-          setModalOpen(false); // automatically close modal
-        }}
-      />
-
-      {/* Account Management */}
-      <DeleteAccount />
-      <UpdateAccount />
-      <Bio />
-
-      {/* Navigation Buttons */}
-      <div className="navigation-buttons">
+      {/* <div className="navigation-buttons">
         <button className="custom-button1" onClick={() => navigate("/chat")}>
           Chats
         </button>
@@ -72,7 +106,7 @@ const Main = () => {
         <button className="custom-button1" onClick={handleLogout}>
           Log Out
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

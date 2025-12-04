@@ -2,10 +2,15 @@ import { db }  from "../db.js";
 
 export const createPost = async (req, res) => {
   const userId = req.user.id;
-  const { text, visibility = "public" } = req.body;
+  let { text, visibility = "everyone" } = req.body;
   const files = req.files || []; // uploaded images
 
   try {
+    // Validate visibility against enum values
+    if (!["everyone", "friends", "private"].includes(visibility)) {
+      visibility = "everyone";
+    }
+
     // Insert post
     const [result] = await db.execute(
       "INSERT INTO posts (user_id, text, visibility, likes, created_at, updated_at) VALUES (?, ?, ?, 0, NOW(), NOW())",
@@ -35,9 +40,13 @@ export const getMyPosts = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    // Get posts
+    // Get posts with user info
     const [posts] = await db.execute(
-      "SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC",
+      `SELECT p.id, p.user_id, p.text, p.visibility, p.likes, p.created_at, p.updated_at, u.username, u.profile_picture
+       FROM posts p
+       JOIN users u ON u.id = p.user_id
+       WHERE p.user_id = ? 
+       ORDER BY p.created_at DESC`,
       [userId]
     );
 
@@ -62,12 +71,12 @@ export const getFeedPosts = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    // Example: public posts or friends' posts
+    // Get public posts or friends' posts
     const [posts] = await db.execute(
-      `SELECT p.*, u.username, u.profile_picture
+      `SELECT p.id, p.user_id, p.text, p.visibility, p.likes, p.created_at, p.updated_at, u.username, u.profile_picture
        FROM posts p
        JOIN users u ON u.id = p.user_id
-       WHERE p.visibility = 'public'
+       WHERE p.visibility = 'everyone'
           OR (p.visibility = 'friends' AND p.user_id IN (
             SELECT CASE
                      WHEN user_a = ? THEN user_b
@@ -196,7 +205,7 @@ export const setPostVisibility = async (req, res) => {
   const { visibility } = req.body;
   const userId = req.user.id;
 
-  if (!["public", "friends"].includes(visibility))
+  if (!["everyone", "friends", "private"].includes(visibility))
     return res.status(400).json({ error: "Invalid visibility option" });
 
   try {
@@ -214,7 +223,7 @@ export const setPostVisibility = async (req, res) => {
   }
 };
 
-// ------------------------- COMMENTS -------------------------
+// ------------------------- ADD COMMENT -------------------------
 export const AddCommentToPost = async (req, res) => {
   const { postId } = req.params;
   const userId = req.user.id;
@@ -226,7 +235,16 @@ export const AddCommentToPost = async (req, res) => {
       [postId, userId, text]
     );
 
-    res.status(201).json({ success: true, commentId: result.insertId });
+    // Return the newly created comment with user info
+    const [newComments] = await db.execute(
+      `SELECT c.*, u.username, u.profile_picture 
+       FROM comments c
+       JOIN users u ON u.id = c.user_id
+       WHERE c.id = ?`,
+      [result.insertId]
+    );
+
+    res.status(201).json(newComments[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Could not add comment" });

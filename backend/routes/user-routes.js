@@ -20,7 +20,7 @@ import {
 import { uploadProfilePicture } from '../middleware/upload-middleware.js';
 import { authMiddleware } from '../middleware/auth-middleware.js';
 
-const router = express.Router();   // ✅ must come before any router.use or router.get/post/etc
+const router = express.Router();
 
 // Public routes
 router.post('/register', registerUser);

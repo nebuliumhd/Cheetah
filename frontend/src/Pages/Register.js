@@ -80,16 +80,16 @@ const RegisterUser = () => {
 
         <form className="register-form" onSubmit={handleSubmit}>
   <label className="form-label" htmlFor="firstName">First Name</label>
-  <input id="firstName" name="firstName" className="form-input" value={formData.firstName} onChange={handleChange} required />
+  <input id="firstName" name="firstName" className="form-input" maxLength={25} value={formData.firstName} onChange={handleChange} required />
 
   <label className="form-label" htmlFor="lastName">Last Name</label>
-  <input id="lastName" name="lastName" className="form-input" value={formData.lastName} onChange={handleChange} required />
+  <input id="lastName" name="lastName" className="form-input" maxLength={25} value={formData.lastName} onChange={handleChange} required />
 
   <label className="form-label" htmlFor="userName">Username</label>
-  <input id="userName" name="userName" className="form-input" value={formData.userName} onChange={handleChange} required />
+  <input id="userName" name="userName" className="form-input" maxLength={25} value={formData.userName} onChange={handleChange} required />
 
   <label className="form-label" htmlFor="email">Email</label>
-  <input id="email" name="email" type="email" className="form-input" value={formData.email} onChange={handleChange} required />
+  <input id="email" name="email" type="email" className="form-input" maxLength={255} value={formData.email} onChange={handleChange} required />
 
   <label className="form-label" htmlFor="passWord">Password</label>
   <input id="passWord" name="passWord" type="password" className="form-input" value={formData.passWord} onChange={handleChange} required />

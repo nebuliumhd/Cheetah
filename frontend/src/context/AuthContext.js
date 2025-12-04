@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 
 const AuthContext = createContext();
 
@@ -40,15 +40,46 @@ export const AuthProvider = ({ children }) => {
     loadAuthFromStorage();
   }, []);
 
-  const logout = () => {
-    setIsLoggedIn(false);
-    setUser(null);
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('user');
+  const login = (name, id, token, profilePic = null) => {
+    setUsername(name);
+    setUserId(id);
+    setProfilePicture(profilePic);
+    sessionStorage.setItem('username', name);
+    sessionStorage.setItem('userId', id);
+    if (profilePic) {
+      sessionStorage.setItem('profile_picture', profilePic);
+    }
+    localStorage.setItem('token', token);
   };
 
+  const updateProfilePicture = (newPath) => {
+    setProfilePicture(newPath);
+    if (newPath) {
+      sessionStorage.setItem('profile_picture', newPath);
+    } else {
+      sessionStorage.removeItem('profile_picture');
+    }
+  };
+
+  // Derived values
+  const isLoggedIn = Boolean(userId);
+  const user = userId ? { 
+    id: userId, 
+    username,
+    profile_picture: profilePicture 
+  } : null;
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isLoggedIn, 
+      username, 
+      userId, 
+      user, 
+      login, 
+      logout, 
+      loading,
+      updateProfilePicture 
+    }}>
       {children}
     </AuthContext.Provider>
   );

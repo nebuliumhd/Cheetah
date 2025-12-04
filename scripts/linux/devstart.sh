@@ -4,7 +4,7 @@
 echo "Starting backend..."
 cd ../../backend
 npm install
-npm run dev &
+sudo npm run dev &
 BACKEND_PID=$!
 
 # Start the frontend

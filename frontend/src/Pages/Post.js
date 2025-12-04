@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import PostContainer from "../Components/User Settings/PostContainer.js";
-import CreatePostForm from "../Components/User Settings/CreatePostForm.js";
+import PostContainer from "../Components/Post and Feed/PostContainer.js";
+import CreatePostForm from "../Components/Post and Feed/CreatePostForm.js";
 
 export default function PostPage() {
-  const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
   const token = localStorage.getItem("token");
   const [posts, setPosts] = useState([]);
 
@@ -27,7 +27,7 @@ export default function PostPage() {
       <CreatePostForm onPostCreated={loadMyPosts} />
 
       {posts.length === 0 ? (
-        <p style={{ color: "#fff" }}>You have no posts yet.</p>
+        <p className="no-posts-text">You have no posts yet.</p>
       ) : (
         posts.map((post) => (
           <PostContainer

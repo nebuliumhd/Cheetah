@@ -2,6 +2,7 @@
 node_modules/
 # Production build
 build/
+uploads/
 
 # Logs
 npm-debug.log*
@@ -10,6 +11,7 @@ yarn-error.log*
 
 # Editor directories and files
 .vscode/
+.vs/
 .idea/
 *.suo
 *.ntvs*
@@ -20,4 +22,11 @@ yarn-error.log*
 # OS-specific files
 .DS_Store
 Thumbs.db
-.env
+*.env
+*.env.*
+
+# SSL Certificates
+certs/
+*.pem
+*.key
+*.crt

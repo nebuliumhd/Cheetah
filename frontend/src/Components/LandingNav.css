@@ -31,11 +31,11 @@
 
 .nav-title-link {
   text-decoration: none;
-  translate:  0%;
   font-size: 32px;
   font-weight: 700;
   color: #ffffff;
 }
+
 /* Nav Links on the Right */
 .Links {
   display: flex;
@@ -68,14 +68,15 @@
   font-family: inherit;
   background-color: #000000;
   cursor: pointer;
-  transition: border-color 0.25s;
-  translate: translateY(-2px); 
+  transition: all 0.25s ease;
   color: white;
 }
 
-.button1:hover{
+.button1:hover {
   border-color: #000000;
   background: #ffffff;
+  color: #000000;
+  transform: translateY(-2px);
 }
 
 .name {

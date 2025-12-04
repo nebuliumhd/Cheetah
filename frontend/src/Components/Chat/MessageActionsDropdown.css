@@ -6,7 +6,7 @@
 .message-actions-trigger {
   background: none;
   border: none;
-  color: #65676b;
+  color: var(--text-secondary);
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
@@ -23,19 +23,21 @@
 }
 
 .message-actions-trigger:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--hover-bg);
 }
 
 .message-actions-trigger:active {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--hover-bg);
+  opacity: 0.8;
 }
 
 /* Dropdown menu */
 .message-actions-dropdown {
   position: absolute;
-  background-color: white;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow);
   min-width: 160px;
   z-index: 1000;
   overflow: hidden;
@@ -77,24 +79,24 @@
   text-align: left;
   cursor: pointer;
   font-size: 14px;
-  color: #050505;
+  color: var(--text-primary);
   transition: background-color 0.15s ease;
 }
 
 .action-item:hover {
-  background-color: #f2f2f2;
+  background-color: var(--hover-bg);
 }
 
 .action-item.edit:hover {
-  background-color: #e7f3ff;
+  background-color: rgba(0, 132, 255, 0.1);
 }
 
 .action-item.delete:hover {
-  background-color: #ffe5e5;
-  color: #c00;
+  background-color: rgba(240, 71, 71, 0.1);
+  color: #f04747;
 }
 
 /* Border between items */
 .action-item:not(:last-child) {
-  border-bottom: 1px solid #e4e6eb;
+  border-bottom: 1px solid var(--border-color);
 }

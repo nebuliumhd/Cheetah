@@ -1,9 +1,15 @@
+.posts-page {
+  margin: 0 auto;
+  padding: 20px;
+}
+
 .post {
-  background: #2f3136;
   border-radius: 10px;
   padding: 15px;
   margin-bottom: 20px;
-  color: #fff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 /* Header */
@@ -18,30 +24,33 @@
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--border-color);
 }
 
 .post-username {
   font-weight: bold;
   margin: 0;
+  color: var(--text-primary);
 }
 
 .post-time {
   font-size: 12px;
-  color: #aaa;
 }
 
 /* Images grid */
 .post-images {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 8px;
   margin-top: 10px;
+  max-width: 100%;
 }
 
 .post-images img {
   width: 100%;
+  max-height: 400px;
   border-radius: 8px;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 /* Footer */
@@ -55,12 +64,17 @@
   padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
+  color: white;
+  font-weight: 500;
+}
+
+.post-footer button:hover {
+  background: #4752c4;
 }
 
 /* Comments */
 .post-comments {
   margin-top: 15px;
-  background: #202225;
   padding: 10px;
   border-radius: 8px;
 }
@@ -74,12 +88,12 @@
 
 .comment-username {
   font-weight: bold;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .comment-text {
   flex: 1;
-  color: #ddd;
+  color: var(--text-primary);
 }
 
 .comment-delete {
@@ -87,6 +101,11 @@
   border: none;
   color: #f04747;
   cursor: pointer;
+  font-size: 14px;
+}
+
+.comment-delete:hover {
+  opacity: 0.8;
 }
 
 .comment-input {
@@ -99,9 +118,14 @@
   flex: 1;
   padding: 6px;
   border-radius: 5px;
-  border: none;
-  background: #36393f;
-  color: white;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.comment-input input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
 
 .comment-input button {
@@ -109,4 +133,17 @@
   border: none;
   padding: 5px 10px;
   border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.comment-input button:hover {
+  background: #4752c4;
+}
+
+.no-posts-text {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 40px;
 }

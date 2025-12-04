@@ -14,20 +14,21 @@
 
 /* Main Modal Container */
 .group-settings-modal {
-  background-color: white;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
   height: 600px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px var(--shadow);
 }
 
 /* Header */
 .group-settings-header {
   padding: 20px;
-  border-bottom: 1px solid #e4e6eb;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -38,6 +39,7 @@
   margin: auto;
   font-size: 20px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .group-settings-close-btn {
@@ -49,12 +51,12 @@
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  color: #65676b;
+  color: var(--text-secondary);
   line-height: 1;
 }
 
 .group-settings-close-btn:hover {
-  color: #000;
+  color: var(--text-primary);
 }
 
 /* Content Area */
@@ -73,7 +75,7 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #65676b;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
@@ -85,9 +87,11 @@
 .group-name-input {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   font-size: 14px;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .group-name-input:focus {
@@ -112,8 +116,8 @@
 
 .group-name-cancel-btn {
   padding: 8px 16px;
-  background-color: #e4e6eb;
-  color: #333;
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -122,24 +126,26 @@
 }
 
 .group-name-cancel-btn:hover {
-  background-color: #d0d2d6;
+  opacity: 0.8;
 }
 
 .group-name-display {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 
 .group-name-text {
   font-size: 16px;
   font-weight: 500;
+  color: var(--text-primary);
 }
 
 .group-name-edit-btn {
   padding: 4px 12px;
-  background-color: #e4e6eb;
-  color: #333;
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -148,7 +154,7 @@
 }
 
 .group-name-edit-btn:hover {
-  background-color: #d0d2d6;
+  opacity: 0.8;
 }
 
 /* Members Section */
@@ -162,13 +168,13 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #65676b;
+  color: var(--text-secondary);
   margin-bottom: 12px;
 }
 
 .members-loading {
   text-align: center;
-  color: #65676b;
+  color: var(--text-secondary);
 }
 
 .members-list {
@@ -182,7 +188,7 @@
   display: flex;
   align-items: center;
   padding: 12px;
-  background-color: #f5f6f7;
+  background-color: var(--bg-tertiary);
   border-radius: 8px;
   gap: 12px;
 }
@@ -201,12 +207,12 @@
 .participant-username {
   font-size: 15px;
   font-weight: 500;
-  color: #050505;
+  color: var(--text-primary);
 }
 
 .participant-you-label {
   font-size: 13px;
-  color: #65676b;
+  color: var(--text-secondary);
   margin-left: 6px;
 }
 
@@ -236,16 +242,16 @@
   display: flex;
   align-items: center;
   padding: 12px;
-  background-color: #f5f6f7;
+  background-color: var(--hover-bg);
   border-radius: 8px;
   gap: 12px;
   cursor: pointer;
-  border: 2px dashed #ccc;
+  border: 2px dashed var(--border-color);
   transition: all 0.2s ease;
 }
 
 .add-user-button:hover {
-  background-color: #e4e6eb;
+  background-color: var(--bg-secondary);
   border-color: #0084ff;
 }
 
@@ -264,7 +270,7 @@
 .add-user-text {
   font-size: 15px;
   font-weight: 500;
-  color: #65676b;
+  color: var(--text-secondary);
 }
 
 .add-user-icon {
@@ -276,7 +282,7 @@
 /* Footer */
 .group-settings-footer {
   padding: 16px 20px;
-  border-top: 1px solid #e4e6eb;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
   flex-shrink: 0;
@@ -285,7 +291,7 @@
 .group-settings-done-btn {
   padding: 10px 24px;
   margin: auto;
-  background-color: #0084ff;
+  background-color: var(--button-primary-hover);
   color: white;
   border: none;
   border-radius: 6px;
@@ -313,29 +319,31 @@
 }
 
 .add-user-modal {
-  background-color: white;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px var(--shadow);
 }
 
 .add-user-modal-header {
   padding: 20px;
-  border-bottom: 1px solid #e4e6eb;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .add-user-modal-title {
   margin: 0 0 16px 0;
   font-size: 18px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .add-user-modal-footer {
   padding: 16px 20px;
-  border-top: 1px solid #e4e6eb;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -343,8 +351,8 @@
 
 .add-user-modal-cancel-btn {
   padding: 8px 16px;
-  background-color: #e4e6eb;
-  color: #333;
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -353,7 +361,7 @@
 }
 
 .add-user-modal-cancel-btn:hover {
-  background-color: #d0d2d6;
+  opacity: 0.8;
 }
 
 .add-user-modal-add-btn {

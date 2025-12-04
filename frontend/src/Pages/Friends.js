@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import "../App.css";
 import "./Friends.css";
 
 export default function Friends() {
-  const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
-  const token = localStorage.getItem("token");
+  const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
   const [newFriend, setNewFriend] = useState("");
   const [addError, setAddError] = useState("");
@@ -13,6 +13,8 @@ export default function Friends() {
   const [incoming, setIncoming] = useState([]);
   const [outgoing, setOutgoing] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const token = localStorage.getItem("token");
 
   const authHeader = {
     Authorization: `Bearer ${token}`,
@@ -114,6 +116,7 @@ export default function Friends() {
         <h2>Add a Friend</h2>
         <div className="add-friend">
           <input
+            className="search-friend"
             type="text"
             placeholder="Enter username"
             value={newFriend}
@@ -126,7 +129,7 @@ export default function Friends() {
         {addError && <p style={{ color: "red" }}>{addError}</p>}
       </section>
       {/* FRIEND LIST */}
-      <section>
+      <section className="friend-section">
         <h2>Your Friends</h2>
         {friends.length === 0 ? (
           <p>You have no friends yet 💀</p>
@@ -135,7 +138,11 @@ export default function Friends() {
             <div key={f.id} className="friend-item">
               {/* Profile picture */}
               <img
-                src={f.profile_picture || "/default-avatar.png"} // fallback if no picture
+                src={
+                  f.profile_picture
+                    ? `${API}${f.profile_picture}`
+                    : `${API}/uploads/profiles/default-profile.jpg`
+                }
                 alt={f.username}
                 className="friend-avatar"
               />
@@ -149,20 +156,24 @@ export default function Friends() {
       <hr />
 
       {/* INCOMING */}
-      <section>
+      <section className="friend-section">
         <h2>Incoming Requests</h2>
         {incoming.length === 0 ? (
           <p>No incoming requests</p>
         ) : (
-          incoming.map((req) => (
-            <div key={req.id} className="friend-request-item">
-              <span>{req.username}</span>
-              <button onClick={() => acceptFriend(req.username)}>Accept</button>
-              <button onClick={() => declineFriend(req.username)}>
-                Decline
-              </button>
-            </div>
-          ))
+          <div className="friend-container">
+            {incoming.map((req) => (
+              <div key={req.id} className="friend-request-item">
+                <span>{req.username}</span>
+                <button onClick={() => acceptFriend(req.username)}>
+                  Accept
+                </button>
+                <button onClick={() => declineFriend(req.username)}>
+                  Decline
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </section>
 

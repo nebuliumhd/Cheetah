@@ -1,0 +1,17 @@
+.feed-page {
+  width: 75%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.feed-page h2 {
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.feed-page p {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 40px;
+}

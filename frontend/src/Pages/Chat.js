@@ -4,8 +4,9 @@ import ChatWindow from "../Components/Chat/ChatWindow";
 import MessageInput from "../Components/Chat/MessageInput";
 import GroupSettingsModal from "../Components/Chat/GroupSettingsModal";
 import { useAuth } from "../context/AuthContext";
+import "./Chat.css";
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost";
 
 export default function Chat() {
   const { user, userId } = useAuth();
@@ -15,6 +16,7 @@ export default function Chat() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showGroupSettings, setShowGroupSettings] = useState(false);
   const [conversations, setConversations] = useState([]);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   const token = localStorage.getItem("token");
 
@@ -71,7 +73,7 @@ export default function Chat() {
     return () => {
       isActive = false;
     };
-  }, [API_BASE, token, refreshTrigger]); // REMOVED selectedConversation?.id from dependencies
+  }, [API_BASE, token, refreshTrigger]);
 
   const handleMessageSent = () => {
     setRefreshTrigger((prev) => prev + 1);
@@ -91,6 +93,15 @@ export default function Chat() {
     console.log('Selected conversation:', conversation);
     setSelectedConversation(conversation);
     setShowGroupSettings(false);
+    // Hide sidebar on mobile when conversation is selected
+    if (window.innerWidth <= 768) {
+      setShowSidebar(false);
+    }
+  };
+
+  const handleBackToList = () => {
+    setShowSidebar(true);
+    // Don't clear the selected conversation - keep it in background
   };
 
   // Get PFP for 1:1 chats
@@ -115,74 +126,43 @@ export default function Chat() {
   // Show loading state if no token
   if (!token) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100%",
-          fontSize: "16px",
-          color: "#65676b",
-        }}
-      >
+      <div className="chat-loading">
         Please log in to access chat
       </div>
     );
   }
 
   return (
-    <div
-      className="chat-page"
-      style={{
-        display: "flex",
-        height: "100%",
-        width: "100%",
-        overflow: "hidden",
-        boxSizing: "border-box",
-        backgroundColor: "#f0f2f5",
-      }}
-    >
+    <div className="chat-page">
       {/* Sidebar */}
-      <ConversationList 
-        onSelect={handleSelectConversation} 
-        conversations={conversations}
-      />
+      <div className={`chat-sidebar ${showSidebar ? 'show' : 'hide'}`}>
+        <ConversationList 
+          onSelect={handleSelectConversation} 
+          conversations={conversations}
+          isSidebarOpen={showSidebar}
+        />
+      </div>
 
       {/* Chat Area */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          overflow: "hidden",
-        }}
-      >
+      <div className={`chat-main ${!showSidebar ? 'show' : 'hide'}`}>
         {selectedConversation ? (
           <>
             {/* Header */}
-            <div
-              style={{
-                padding: "12px 20px",
-                borderBottom: "1px solid #ccc",
-                backgroundColor: "#fff",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                flexShrink: 0,
-              }}
-            >
+            <div className="chat-header">
+              {/* Back button for mobile */}
+              <button 
+                className="chat-back-btn"
+                onClick={handleBackToList}
+              >
+                ←
+              </button>
+
               {/* 1:1 PFP */}
               {!selectedConversation.is_group && (
                 <img
                   src={getConversationPfp(selectedConversation)}
                   alt="Profile"
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                  }}
+                  className="chat-header-avatar"
                   onError={(e) => {
                     e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
                   }}
@@ -191,20 +171,18 @@ export default function Chat() {
 
               {/* Group emoji */}
               {selectedConversation.is_group && (
-                <span style={{ fontSize: "24px" }}>👥</span>
+                <span className="chat-header-icon">👥</span>
               )}
 
               {/* Title */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <h2 style={{ margin: 0, fontSize: "18px" }}>
+              <div className="chat-header-info">
+                <h2 className="chat-header-title">
                   {selectedConversation.display_name ||
                     selectedConversation.group_name ||
                     "Unknown"}
                 </h2>
                 {selectedConversation.is_group && (
-                  <span
-                    style={{ fontSize: "13px", color: "#65676b", marginTop: "2px" }}
-                  >
+                  <span className="chat-header-members">
                     ({getMemberCount(selectedConversation)} members)
                   </span>
                 )}
@@ -213,15 +191,7 @@ export default function Chat() {
               {/* Group settings */}
               {selectedConversation.is_group && (
                 <button
-                  style={{
-                    marginLeft: "auto",
-                    padding: "6px 12px",
-                    backgroundColor: "#e4e6eb",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
+                  className="chat-settings-btn"
                   onClick={() => setShowGroupSettings(true)}
                 >
                   Settings
@@ -230,14 +200,7 @@ export default function Chat() {
             </div>
 
             {/* Chat messages scrollable */}
-            <div
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                overflowX: "hidden",
-                padding: "12px 16px",
-              }}
-            >
+            <div className="chat-messages-container">
               <ChatWindow
                 conversation={selectedConversation}
                 refreshTrigger={refreshTrigger}
@@ -246,7 +209,7 @@ export default function Chat() {
             </div>
 
             {/* Message input */}
-            <div style={{ flexShrink: 0 }}>
+            <div className="chat-input-container">
               <MessageInput
                 conversation={selectedConversation}
                 onMessageSent={handleMessageSent}
@@ -254,16 +217,7 @@ export default function Chat() {
             </div>
           </>
         ) : (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flex: 1,
-              fontSize: "16px",
-              color: "#65676b",
-            }}
-          >
+          <div className="chat-empty">
             Select a conversation to start chatting
           </div>
         )}

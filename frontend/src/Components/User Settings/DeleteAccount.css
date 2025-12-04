@@ -1,14 +1,58 @@
-.delete-form {
-  display: flex !important;          /* force flex */
-  flex-direction: column !important; /* stack vertically */
-  align-items: stretch;              /* make inputs/buttons full width */
-  gap: 0.75rem;                      /* spacing between elements */
+.delete-section {
+  margin-top: 1rem;
+  width: 100%;
 }
 
-.delete-form label,
-.delete-form input,
-.delete-form button {
-  display: block;   /* each element takes its own line */
-  width: 100%;      /* fill the form width */
+.delete-form-container {
+  overflow: hidden;
+  background: var(--hover-bg);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.delete-form {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.delete-form label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.delete-form input {
+  display: block;
+  width: 100%;
   box-sizing: border-box;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.delete-form input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.delete-btn {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #e63946;
+  color: white;
+  padding: 0.75rem;
+  margin: auto;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.delete-btn:hover {
+  background-color: #d62828;
 }

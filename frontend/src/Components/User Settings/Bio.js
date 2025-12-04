@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
 
 export default function Bio({ currentBio }) {
-  const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
   const token = localStorage.getItem("token");
 
   const [bio, setBio] = useState(currentBio || "");
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Update bio when currentBio prop changes
+  useEffect(() => {
+    if (currentBio) {
+      setBio(currentBio);
+    }
+  }, [currentBio]);
 
   const authHeader = {
     Authorization: `Bearer ${token}`,
@@ -51,6 +58,9 @@ export default function Bio({ currentBio }) {
             onChange={(e) => setBio(e.target.value)}
             rows={4}
             placeholder="Write something about yourself..."
+            style={{
+              maxWidth: "50vw"
+            }}
           />
           <div className="custom-button1">
             <button onClick={saveBio} disabled={loading}>

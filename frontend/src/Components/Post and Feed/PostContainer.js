@@ -1,10 +1,14 @@
 
 import { useState } from "react";
+import "../../App.css";
 import "./PostContainer.css";
 
 export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
-  const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
   const token = localStorage.getItem("token");
+
+  // Debug: log post data
+  console.log("Post data:", post);
 
   const [likes, setLikes] = useState(post.likes ?? 0);
   const [userLiked, setUserLiked] = useState(post.user_liked ?? false);
@@ -47,6 +51,7 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
 
       const newComment = await res.json();
 
+      // newComment now includes username and profile_picture from backend
       setComments((prev) => [...prev, newComment]);
       setCommentText("");
 
@@ -101,13 +106,13 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
       {/* HEADER */}
       <div className="post-header">
         <img
-          src={post.user?.profile_picture || "/default-avatar.png"}
+          src={post.profile_picture ? `${API}${post.profile_picture}` : `${API}/uploads/profiles/default-profile.jpg`}
           alt="avatar"
           className="post-avatar"
         />
 
-        <div>
-          <p className="post-username">{post.user?.username}</p>
+        <div className="post-user-info">
+          <p className="post-username">{post.username}</p>
           <span className="post-time">{formatTime(post.created_at)}</span>
         </div>
 

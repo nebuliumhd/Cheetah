@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import "../../App.css";
 import "./PFPOverlayModal.css";
 
 export default function PFPOverlayModal({ 
@@ -81,7 +82,7 @@ export default function PFPOverlayModal({
 
         {preview && (
           <div className="preview-container">
-            <img src={preview} alt="Preview" className="preview-img" />
+            <img src={`${API_BASE}${preview}`} alt="Preview" className="preview-img" />
             <button onClick={() => setSelectedFile(null)}>Remove</button>
           </div>
         )}

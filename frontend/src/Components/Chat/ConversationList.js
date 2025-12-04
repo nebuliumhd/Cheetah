@@ -1,5 +1,7 @@
 import { useEffect, useState, memo } from "react";
+import { createPortal } from "react-dom";
 import AsyncSelect from "react-select/async";
+import "../../App.css";
 import "./ConversationList.css";
 
 // Memoized conversation item
@@ -55,6 +57,7 @@ ConversationItem.displayName = "ConversationItem";
 export default function ConversationList({
   onSelect,
   conversations: propConversations,
+  isSidebarOpen: propIsSidebarOpen,
 }) {
   const [conversations, setConversations] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -63,9 +66,13 @@ export default function ConversationList({
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const token = localStorage.getItem("token");
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+
+  // Use prop if provided, otherwise use local state
+  const sidebarOpen = propIsSidebarOpen !== undefined ? propIsSidebarOpen : isSidebarOpen;
 
   // Update conversations when prop changes
   useEffect(() => {
@@ -195,6 +202,10 @@ export default function ConversationList({
       });
 
       setSelectedUser(null);
+      // Close sidebar on mobile after selection
+      if (window.innerWidth <= 768) {
+        setIsSidebarOpen(false);
+      }
     } catch (err) {
       setError(err.message);
       setTimeout(() => setError(""), 3000);
@@ -250,6 +261,11 @@ export default function ConversationList({
         is_group: true,
         display_name: groupName.trim(),
       });
+
+      // Close sidebar on mobile after selection
+      if (window.innerWidth <= 768) {
+        setIsSidebarOpen(false);
+      }
     } catch (err) {
       setError(err.message);
       setTimeout(() => setError(""), 3000);
@@ -292,97 +308,175 @@ export default function ConversationList({
     }
   };
 
+  const handleConversationSelect = (conv) => {
+    onSelect(conv);
+    // Close sidebar on mobile after selection
+    if (window.innerWidth <= 768) {
+      setIsSidebarOpen(false);
+    }
+  };
+
   return (
-    <div className="conversation-list">
-      <h3>Your Conversations</h3>
+    <>
+      {/* Overlay for mobile */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? "visible" : ""}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
 
-      <div className="one-to-one-box">
-        <AsyncSelect
-          cacheOptions
-          loadOptions={loadOptions}
-          defaultOptions
-          value={selectedUser}
-          onChange={setSelectedUser}
-          placeholder="Enter username..."
-          styles={{ container: (base) => ({ ...base, flexGrow: 1 }) }}
-        />
+      {/* Conversation List */}
+      <div className={`conversation-list ${sidebarOpen ? "open" : ""}`}>
+        <h3 style={{ color: "var(--text-primary)" }}>Your Conversations</h3>
 
-        <button className="start-button" onClick={startConversation}>
-          +
+        <div className="one-to-one-box">
+          <AsyncSelect
+            cacheOptions
+            loadOptions={loadOptions}
+            defaultOptions
+            value={selectedUser}
+            onChange={setSelectedUser}
+            placeholder="Enter username..."
+            styles={{ container: (base) => ({ ...base, flexGrow: 1 }) }}
+          />
+
+          <button className="start-button" onClick={startConversation}>
+            +
+          </button>
+        </div>
+
+        <button
+          className="new-group-button"
+          onClick={() => setShowGroupModal(true)}
+        >
+          New Group Chat
         </button>
+
+        {error && <p className="error-text">{error}</p>}
+
+        {loadingConversations ? (
+          <p>Loading...</p>
+        ) : conversations.length === 0 ? (
+          <p>No conversations yet</p>
+        ) : (
+          conversations.map((conv) => (
+            <ConversationItem
+              key={conv.id}
+              conv={conv}
+              onSelect={handleConversationSelect}
+              onDelete={deleteConversation}
+              apiBase={API_BASE}
+            />
+          ))
+        )}
       </div>
 
-      <button
-        className="new-group-button"
-        onClick={() => setShowGroupModal(true)}
-      >
-        New Group Chat
-      </button>
-
-      {error && <p className="error-text">{error}</p>}
-
-      {loadingConversations ? (
-        <p>Loading...</p>
-      ) : conversations.length === 0 ? (
-        <p>No conversations yet</p>
-      ) : (
-        conversations.map((conv) => (
-          <ConversationItem
-            key={conv.id}
-            conv={conv}
-            onSelect={onSelect}
-            onDelete={deleteConversation}
-            apiBase={API_BASE}
-          />
-        ))
-      )}
-
-      {/* Group Modal */}
-      {showGroupModal && (
-        <div className="modal-overlay" onClick={() => setShowGroupModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Create Group Chat</h3>
-
-            <input
-              type="text"
-              placeholder="Group name"
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-              className="modal-input"
-            />
-
-            <AsyncSelect
-              isMulti
-              cacheOptions
-              loadOptions={loadOptions}
-              defaultOptions
-              value={selectedMembers}
-              onChange={setSelectedMembers}
-              placeholder="Search and add members..."
-              styles={{
-                container: (base) => ({ ...base, marginBottom: "15px" }),
+      {/* Group Modal - Using Portal */}
+      {showGroupModal &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 999999,
+            }}
+            onClick={() => setShowGroupModal(false)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                padding: "30px",
+                borderRadius: "8px",
+                minWidth: "400px",
+                maxWidth: "500px",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               }}
-            />
+            >
+              <h3 style={{ marginTop: 0, marginBottom: "20px", display: "flex", justifyContent: "center", color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" }}>
+                Create Group Chat
+              </h3>
 
-            <div className="modal-actions">
-              <button className="modal-create-button" onClick={createGroupChat}>
-                Create Group
-              </button>
-
-              <button
-                className="modal-cancel-button"
-                onClick={() => {
-                  setShowGroupModal(false);
-                  setGroupName("");
-                  setSelectedMembers([]);
+              <input
+                type="text"
+                placeholder="Group name"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  marginBottom: "15px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                  boxSizing: "border-box",
                 }}
-              >
-                Cancel
-              </button>
+              />
+
+              <div style={{ marginBottom: "15px" }}>
+                <AsyncSelect
+                  isMulti
+                  cacheOptions
+                  loadOptions={loadOptions}
+                  defaultOptions
+                  value={selectedMembers}
+                  onChange={setSelectedMembers}
+                  placeholder="Search and add members..."
+                  styles={{
+                    menu: (base) => ({ ...base, zIndex: 1000000 }),
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+                <button
+                  onClick={createGroupChat}
+                  style={{
+                    flex: 1,
+                    padding: "10px 20px",
+                    backgroundColor: "var(--bg-tertiary)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                  }}
+                >
+                  Create Group
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowGroupModal(false);
+                    setGroupName("");
+                    setSelectedMembers([]);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "10px 20px",
+                    backgroundColor: "#6c757d",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }

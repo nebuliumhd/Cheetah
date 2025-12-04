@@ -18,7 +18,6 @@
 
 .BackgroundDiv {
   background-color: #4b0430ff;
-  /* background-image: "url(/images/chat-bg.jpg)"; */
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -47,13 +46,14 @@
   border-radius: 12px;
   padding: 12px 24px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
   margin-top: 20px;
 }
 
 .Landing-Button:hover {
   background-color: #f700fff3;
   color: black;
+  transform: translateY(-2px);
 }
 
 .Landing-Button:active {
