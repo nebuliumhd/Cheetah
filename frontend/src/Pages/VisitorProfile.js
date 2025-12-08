@@ -15,7 +15,7 @@ const VisitorProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
   const isOwnProfile = currentUser?.username === username;
 
@@ -28,7 +28,7 @@ const VisitorProfile = () => {
         const token = localStorage.getItem("token");
 
         // Fetch user data
-        const userRes = await fetch(`${API}/api/users/username/${username}`, {
+        const userRes = await fetch(`${API_BASE}/api/users/username/${username}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -41,7 +41,7 @@ const VisitorProfile = () => {
 
         // Fetch user's posts - you'll need to create this endpoint
         // For now, using feed and filtering client-side
-        const postsRes = await fetch(`${API}/api/posts/feed`, {
+        const postsRes = await fetch(`${API_BASE}/api/posts/feed`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -64,7 +64,7 @@ const VisitorProfile = () => {
     if (username) {
       fetchProfile();
     }
-  }, [username, API]);
+  }, [username, API_BASE]);
 
   const handlePostDeleted = (postId) => {
     setUserPosts((prev) => prev.filter((p) => p.id !== postId));
@@ -98,8 +98,8 @@ const VisitorProfile = () => {
         <img
           src={
             profileUser?.profile_picture
-              ? `${API}${profileUser.profile_picture}`
-              : `${API}/uploads/profiles/default-profile.jpg`
+              ? `${API_BASE}${profileUser.profile_picture}`
+              : `${API_BASE}/uploads/profiles/default-profile.jpg`
           }
           alt="Profile"
           className="profile-avatar"

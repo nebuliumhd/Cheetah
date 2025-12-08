@@ -33,18 +33,14 @@ export const registerUser = async (req, res) => {
         .json({ message: "Password must be at least 8 characters long" });
 
     if (!/[A-Z]/.test(password))
-      return res
-        .status(400)
-        .json({
-          message: "Password must contain at least one uppercase letter",
-        });
+      return res.status(400).json({
+        message: "Password must contain at least one uppercase letter",
+      });
 
     if (!/[a-z]/.test(password))
-      return res
-        .status(400)
-        .json({
-          message: "Password must contain at least one lowercase letter",
-        });
+      return res.status(400).json({
+        message: "Password must contain at least one lowercase letter",
+      });
 
     if (!/[0-9]/.test(password))
       return res
@@ -52,11 +48,9 @@ export const registerUser = async (req, res) => {
         .json({ message: "Password must contain at least one number" });
 
     if (!/[^A-Za-z0-9]/.test(password))
-      return res
-        .status(400)
-        .json({
-          message: "Password must contain at least one special character",
-        });
+      return res.status(400).json({
+        message: "Password must contain at least one special character",
+      });
 
     // Check for duplicates
     const [existingUsers] = await db.query(
@@ -254,7 +248,7 @@ export const updateUser = async (req, res) => {
     };
 
     await db.query(
-      `UPDATE users SET first_name=?, last_name=?, username=?, email=?, password_hash=? WHERE id=?`,
+      `UPDATE users SET first_name = ?, last_name = ?, username = ?, email = ?, password_hash = ? WHERE id = ?`,
       [
         updatedUser.first_name,
         updatedUser.last_name,
@@ -291,10 +285,10 @@ export const getUserByUsername = async (req, res) => {
   }
 };
 
-//Get all users in database
+// Get all users in database
 export const getAllUsers = async (req, res) => {
   try {
-    const [results] = await db.query("SELECT * FROM users");
+    const [results] = await db.query(`SELECT * FROM users`);
     res.status(200).json(results);
   } catch (err) {
     console.error("Database error:", err);
@@ -315,10 +309,11 @@ export const updatePFP = async (req, res) => {
     // Save the relative path for DB
     const profilePicPath = `/uploads/profiles/${filename}`;
 
-    await db.query("UPDATE users SET profile_picture = ? WHERE id = ?", [
-      profilePicPath,
-      userId,
-    ]);
+    await db.query(
+      `UPDATE users SET profile_picture = ?
+        WHERE id = ?`,
+      [profilePicPath,userId]
+    );
 
     res.status(200).json({
       message: "Profile picture updated successfully",
@@ -335,20 +330,18 @@ export const getFriends = async (req, res) => {
   try {
     const userId = req.user.id;
     const [rows] = await db.execute(
-      `
-            SELECT 
-                f.id,
-                u.id AS friend_id,
-                u.username,
-                u.profile_picture
-            FROM friends_lists  f
-            JOIN users u 
-              ON (
-                    (u.id = f.user_a AND f.user_b = ?) OR
-                    (u.id = f.user_b AND f.user_a = ?)
-                 )
-            WHERE f.status = 'accepted'
-            `,
+      `SELECT
+          f.id,
+          u.id AS friend_id,
+          u.username,
+          u.profile_picture
+        FROM friends_lists  f
+        JOIN users u 
+          ON (
+            (u.id = f.user_a AND f.user_b = ?) OR
+            (u.id = f.user_b AND f.user_a = ?)
+          )
+        WHERE f.status = 'accepted'`,
       [userId, userId]
     );
 
@@ -395,7 +388,7 @@ export const sendFriendRequest = async (req, res) => {
     // Create friend request (user_a = sender, user_b = receiver)
     await db.execute(
       `INSERT INTO friends_lists (user_a, user_b, status)
-             VALUES (?, ?, 'pending')`,
+        VALUES (?, ?, 'pending')`,
       [userId, targetId]
     );
 
@@ -414,7 +407,9 @@ export const acceptFriendRequest = async (req, res) => {
   try {
     // Find the user who sent the request
     const [fromUser] = await db.execute(
-      `SELECT id FROM users WHERE username = ?`,
+      `SELECT id
+        FROM users
+        WHERE username = ?`,
       [fromUsername]
     );
 
@@ -426,7 +421,8 @@ export const acceptFriendRequest = async (req, res) => {
 
     // Check the pending request
     const [request] = await db.execute(
-      `SELECT * FROM friends_lists              WHERE user_a = ? AND user_b = ? AND status = 'pending'`,
+      `SELECT * FROM friends_lists
+        WHERE user_a = ? AND user_b = ? AND status = 'pending'`,
       [fromId, userId]
     );
 
@@ -439,7 +435,7 @@ export const acceptFriendRequest = async (req, res) => {
     // Accept it
     await db.execute(
       `UPDATE friends_lists SET status = 'accepted'
-             WHERE user_a = ? AND user_b = ?`,
+        WHERE user_a = ? AND user_b = ?`,
       [fromId, userId]
     );
 
@@ -467,10 +463,14 @@ export const declineFriendRequest = async (req, res) => {
 
     const fromId = fromUser[0].id;
 
-    // Delete pending request
+    // Delete request (pending only)
     const [result] = await db.execute(
-      `DELETE FROM friends_lists              WHERE user_a = ? AND user_b = ? AND status = 'pending'`,
-      [fromId, userId]
+      `DELETE FROM friends_lists
+        WHERE status = 'pending'
+        AND (
+          (user_a = ? AND user_b = ?) OR (user_a = ? AND user_b = ?)
+        )`,
+      [userId, fromId, fromId, userId]
     );
 
     if (result.affectedRows === 0) {
@@ -491,7 +491,9 @@ export const removeFriend = async (req, res) => {
 
   try {
     const [targetUser] = await db.execute(
-      `SELECT id FROM users WHERE username = ?`,
+      `SELECT id
+        FROM users
+        WHERE username = ?`,
       [username]
     );
 
@@ -503,11 +505,11 @@ export const removeFriend = async (req, res) => {
 
     // Remove friendship (accepted only)
     const [result] = await db.execute(
-      `DELETE FROM friends_lists              WHERE status = 'accepted'
-               AND (
-                    (user_a = ? AND user_b = ?) OR
-                    (user_a = ? AND user_b = ?)
-               )`,
+      `DELETE FROM friends_lists
+        WHERE status = 'accepted'
+        AND (
+          (user_a = ? AND user_b = ?) OR (user_a = ? AND user_b = ?)
+        )`,
       [userId, targetId, targetId, userId]
     );
 
@@ -529,9 +531,9 @@ export const recieveFriendRequest = async (req, res) => {
   try {
     const [rows] = await db.execute(
       `SELECT u.id, u.username, u.profile_picture
-       FROM friends_lists f
-       JOIN users u ON u.id = f.user_a
-       WHERE f.user_b = ? AND f.status = 'pending'`,
+        FROM friends_lists f
+        JOIN users u ON u.id = f.user_a
+        WHERE f.user_b = ? AND f.status = 'pending'`,
       [userId]
     );
 
@@ -549,9 +551,9 @@ export const pendingFriendRequest = async (req, res) => {
   try {
     const [rows] = await db.execute(
       `SELECT u.id, u.username, u.profile_picture
-       FROM friends_lists f
-       JOIN users u ON u.id = f.user_b
-       WHERE f.user_a = ? AND f.status = 'pending'`,
+        FROM friends_lists f
+        JOIN users u ON u.id = f.user_b
+        WHERE f.user_a = ? AND f.status = 'pending'`,
       [userId]
     );
 

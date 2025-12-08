@@ -35,7 +35,7 @@
   cursor: pointer;
   font-size: 18px;
   transition: background-color 0.3s ease, transform 0.2s ease;
-  width: 10rem;
+  min-width: 10rem;
 }
 
 .custom-button1:hover {

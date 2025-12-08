@@ -5,13 +5,13 @@ import Post from "../Components/Post and Feed/PostContainer";
 
 const FeedPage = () => {
   const [posts, setPosts] = useState([]);
-  const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
   useEffect(() => {
     const fetchFeed = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`${API}/api/posts/feed`, {
+        const res = await fetch(`${API_BASE}/api/posts/feed`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -32,7 +32,7 @@ const FeedPage = () => {
     };
 
     fetchFeed();
-  }, [API]);
+  }, [API_BASE]);
 
   const handlePostDeleted = (postId) => {
     setPosts((prev) => prev.filter((p) => p.id !== postId));

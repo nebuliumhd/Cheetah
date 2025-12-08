@@ -84,7 +84,7 @@ export default function Friends() {
 
   const declineFriend = async (username) => {
     await fetch(`${API}/api/users/decline-friend/${username}`, {
-      method: "POST",
+      method: "DELETE",
       headers: authHeader,
     });
     loadData();
@@ -100,7 +100,7 @@ export default function Friends() {
 
   const cancelRequest = async (username) => {
     await fetch(`${API}/api/users/decline-friend/${username}`, {
-      method: "POST",
+      method: "DELETE",
       headers: authHeader,
     });
     loadData();

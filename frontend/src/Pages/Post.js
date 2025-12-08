@@ -3,12 +3,12 @@ import PostContainer from "../Components/Post and Feed/PostContainer.js";
 import CreatePostForm from "../Components/Post and Feed/CreatePostForm.js";
 
 export default function PostPage() {
-  const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
   const token = localStorage.getItem("token");
   const [posts, setPosts] = useState([]);
 
   const loadMyPosts = async () => {
-    const res = await fetch(`${API}/api/posts/my-posts`, {
+    const res = await fetch(`${API_BASE}/api/posts/my-posts`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

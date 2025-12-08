@@ -39,10 +39,9 @@ router.get("/requests/incoming", recieveFriendRequest);
 router.get("/requests/outgoing", pendingFriendRequest);
 router.post("/friend-request/:username", sendFriendRequest);
 router.post("/accept-friend/:username", acceptFriendRequest);
-router.post("/decline-friend/:username", declineFriendRequest);
+router.delete("/decline-friend/:username", declineFriendRequest);
 router.delete("/remove-friend/:username", removeFriend);
 router.patch("/update-bio", updateBio);
 router.get("/profile/:username", getUserProfile);
 
 export default router;
-
