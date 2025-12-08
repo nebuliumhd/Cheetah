@@ -14,7 +14,8 @@ import {
   acceptFriendRequest,
   declineFriendRequest,
   removeFriend,
-  updateBio
+  updateBio,
+  getUserProfile
 } from '../controllers/user-controller.js';
 
 import { uploadProfilePicture } from '../middleware/upload-middleware.js';
@@ -41,6 +42,7 @@ router.post("/accept-friend/:username", acceptFriendRequest);
 router.post("/decline-friend/:username", declineFriendRequest);
 router.delete("/remove-friend/:username", removeFriend);
 router.patch("/update-bio", updateBio);
+router.get("/profile/:username", getUserProfile);
 
 export default router;
 

@@ -128,29 +128,32 @@ export default function Friends() {
         </div>
         {addError && <p style={{ color: "red" }}>{addError}</p>}
       </section>
+
       {/* FRIEND LIST */}
       <section className="friend-section">
         <h2>Your Friends</h2>
-        {friends.length === 0 ? (
-          <p>You have no friends yet 💀</p>
-        ) : (
-          friends.map((f) => (
-            <div key={f.id} className="friend-item">
-              {/* Profile picture */}
-              <img
-                src={
-                  f.profile_picture
-                    ? `${API}${f.profile_picture}`
-                    : `${API}/uploads/profiles/default-profile.jpg`
-                }
-                alt={f.username}
-                className="friend-avatar"
-              />
-              <span>{f.username}</span>
-              <button onClick={() => removeFriend(f.username)}>Remove</button>
-            </div>
-          ))
-        )}
+        <div className="friend-container">
+          {friends.length === 0 ? (
+            <p>You have no friends yet 💀</p>
+          ) : (
+            friends.map((f) => (
+              <div key={f.id} className="friend-item">
+                {/* Profile picture */}
+                <img
+                  src={
+                    f.profile_picture
+                      ? `${API}${f.profile_picture}`
+                      : `${API}/uploads/profiles/default-profile.jpg`
+                  }
+                  alt={f.username}
+                  className="friend-avatar"
+                />
+                <span>{f.username}</span>
+                <button onClick={() => removeFriend(f.username)}>Remove</button>
+              </div>
+            ))
+          )}
+        </div>
       </section>
 
       <hr />
@@ -158,42 +161,55 @@ export default function Friends() {
       {/* INCOMING */}
       <section className="friend-section">
         <h2>Incoming Requests</h2>
-        {incoming.length === 0 ? (
-          <p>No incoming requests</p>
-        ) : (
-          <div className="friend-container">
-            {incoming.map((req) => (
+        <div className="friend-container">
+          {incoming.length === 0 ? (
+            <p>No incoming requests</p>
+          ) : (
+            incoming.map((req) => (
               <div key={req.id} className="friend-request-item">
                 <span>{req.username}</span>
-                <button onClick={() => acceptFriend(req.username)}>
-                  Accept
-                </button>
-                <button onClick={() => declineFriend(req.username)}>
-                  Decline
-                </button>
+                <div className="button-group">
+                  <button
+                    className="accept"
+                    onClick={() => acceptFriend(req.username)}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    className="decline"
+                    onClick={() => declineFriend(req.username)}
+                  >
+                    Decline
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </section>
 
       <hr />
 
       {/* OUTGOING */}
-      <section>
+      <section className="friend-section">
         <h2>Outgoing Requests</h2>
-        {outgoing.length === 0 ? (
-          <p>No outgoing requests</p>
-        ) : (
-          outgoing.map((req) => (
-            <div key={req.id} className="friend-request-item">
-              <span>{req.username}</span>
-              <button onClick={() => cancelRequest(req.username)}>
-                Cancel Request
-              </button>
-            </div>
-          ))
-        )}
+        <div className="friend-container">
+          {outgoing.length === 0 ? (
+            <p>No outgoing requests</p>
+          ) : (
+            outgoing.map((req) => (
+              <div key={req.id} className="friend-request-item">
+                <span>{req.username}</span>
+                <button
+                  className="cancel"
+                  onClick={() => cancelRequest(req.username)}
+                >
+                  Cancel Request
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </section>
     </div>
   );

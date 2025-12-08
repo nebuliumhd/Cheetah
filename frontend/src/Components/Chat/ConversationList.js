@@ -72,7 +72,8 @@ export default function ConversationList({
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
   // Use prop if provided, otherwise use local state
-  const sidebarOpen = propIsSidebarOpen !== undefined ? propIsSidebarOpen : isSidebarOpen;
+  const sidebarOpen =
+    propIsSidebarOpen !== undefined ? propIsSidebarOpen : isSidebarOpen;
 
   // Update conversations when prop changes
   useEffect(() => {
@@ -147,7 +148,10 @@ export default function ConversationList({
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/chat/search-users?q=${encodeURIComponent(inputValue)}`,
+        // `${API_BASE}/api/chat/search-users?q=${encodeURIComponent(inputValue)}`,
+        `${API_BASE}/api/chat/search-for-friends?q=${encodeURIComponent(
+          inputValue
+        )}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -316,6 +320,72 @@ export default function ConversationList({
     }
   };
 
+  const convListStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      backgroundColor: "var(--bg-secondary)",
+      borderColor: state.isFocused
+        ? "var(--button-primary)"
+        : "var(--border-color)",
+      boxShadow: state.isFocused
+        ? "0 0 0 1px var(--button-primary)"
+        : provided.boxShadow,
+      "&:hover": {
+        borderColor: "var(--button-primary)",
+      },
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: "var(--text-primary)",
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: "var(--bg-secondary)",
+      border: "1px solid var(--border-color)",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected
+        ? "var(--button-primary)"
+        : state.isFocused
+        ? "var(--bg-tertiary)"
+        : "transparent",
+      color: state.isSelected ? "var(--text-tertiary)" : "var(--text-primary)",
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: "var(--text-secondary)",
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "var(--text-primary)",
+    }),
+    indicatorSeparator: (provided) => ({
+      ...provided,
+      backgroundColor: "var(--border-color)",
+    }),
+    dropdownIndicator: (provided, state) => ({
+      ...provided,
+      color: state.isFocused ? "var(--text-primary)" : "var(--text-secondary)",
+    }),
+    clearIndicator: (provided) => ({
+      ...provided,
+      color: "var(--text-secondary)",
+    }),
+    loadingIndicator: (provided) => ({
+      ...provided,
+      color: "var(--button-primary)",
+    }),
+    noOptionsMessage: (provided) => ({
+      ...provided,
+      color: "var(--text-secondary)",
+    }),
+    loadingMessage: (provided) => ({
+      ...provided,
+      color: "var(--text-secondary)",
+    }),
+  };
+
   return (
     <>
       {/* Overlay for mobile */}
@@ -336,7 +406,7 @@ export default function ConversationList({
             value={selectedUser}
             onChange={setSelectedUser}
             placeholder="Enter username..."
-            styles={{ container: (base) => ({ ...base, flexGrow: 1 }) }}
+            styles={convListStyles}
           />
 
           <button className="start-button" onClick={startConversation}>
@@ -399,7 +469,16 @@ export default function ConversationList({
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               }}
             >
-              <h3 style={{ marginTop: 0, marginBottom: "20px", display: "flex", justifyContent: "center", color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" }}>
+              <h3
+                style={{
+                  marginTop: 0,
+                  marginBottom: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  color: "var(--text-primary)",
+                  backgroundColor: "var(--bg-secondary)",
+                }}
+              >
                 Create Group Chat
               </h3>
 

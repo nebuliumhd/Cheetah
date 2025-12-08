@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import "../App.css";
 import './Register.css';
-
+import RequimentsList from '../Components/PasswordRequirement/PasswordRequirements.js';
 const RegisterUser = () => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
   
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
-
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -57,7 +58,7 @@ const RegisterUser = () => {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json();  
       // console.log(payload);
       if (!res.ok) {
         throw new Error(data.message || 'Registration failed.');
@@ -99,6 +100,7 @@ const RegisterUser = () => {
 
   <button className="custom-button" type="submit">Register</button>
 </form>
+
 
         <p className="Login-Redirect">
           Already have an account? <Link to="/login" className="Login-Link">Login here</Link>

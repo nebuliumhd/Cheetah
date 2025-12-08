@@ -5,14 +5,13 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { useEffect, useMemo, createContext, useState } from "react";
-import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./Components/PrivateRoute";
 import Landing from "./Pages/Landing";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Chat from "./Pages/Chat";
 import Profile from "./Pages/UserProfile";
+import VisitorProfile from "./Pages/VisitorProfile"
 import LandingNav from "./Components/LandingNav";
 import PostPage from "./Pages/Post";
 import FeedPage from "./Pages/Feed";
@@ -21,6 +20,8 @@ import UserProfile from "./Pages/UserProfile";
 import ReactSwitch from "react-switch";
 import { Sling as Hamburger } from "hamburger-react";
 import { Sun, Moon } from "lucide-react";
+import { useEffect, useMemo, createContext, useState } from "react";
+import { useAuth } from "./context/AuthContext";
 
 export const ThemeContext = createContext(null);
 
@@ -94,6 +95,8 @@ function App() {
                     src={profilePicUrl}
                     alt={user.username}
                     className="profile-pic"
+                    onClick={() => navigate(`/username/${user.username}`)}
+                    style={{cursor: "pointer"}}
                     onError={(e) => {
                       e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
                     }}
@@ -203,6 +206,7 @@ function App() {
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/username/:username" element={<VisitorProfile />} />
 
             <Route
               path="/chat"
@@ -217,7 +221,7 @@ function App() {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <Profile />
+                  <UserProfile />
                 </ProtectedRoute>
               }
             />
@@ -248,14 +252,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/profile"
+            {/* <Route
+              path="/username/:username"
               element={
                 <ProtectedRoute>
-                  <UserProfile />
+                  <VisitorProfile />
                 </ProtectedRoute>
               }
-            />
+            /> */}
             <Route path="*" element={<Navigate to="/landing" replace />} />
           </Routes>
         </div>

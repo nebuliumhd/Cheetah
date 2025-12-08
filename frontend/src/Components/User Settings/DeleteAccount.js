@@ -8,6 +8,8 @@ const DeleteAccount = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  //get json web token from local storage
+  const token = localStorage.getItem('token');
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -22,10 +24,13 @@ const DeleteAccount = () => {
     setSuccess('');
 
     try {
-      const API_BASE = process.env.REACT_APP_API_BASE || '';
+      const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
       const res = await fetch(`${API_BASE}/api/users/delete`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           username: formData.username,
           password: formData.password,
@@ -39,8 +44,8 @@ const DeleteAccount = () => {
 
       setSuccess('Account deleted successfully.');
       setTimeout(() => {
-        logout(); // clear auth
-        window.location.href = '/register'; // redirect after delete
+        logout();
+        window.location.href = '/register';
       }, 2000);
     } catch (err) {
       setError(err.message || 'Error deleting account.');

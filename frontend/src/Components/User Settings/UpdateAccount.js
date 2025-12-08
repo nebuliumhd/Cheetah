@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
 const UpdateAccount = () => {
-  const { user, logout } = useAuth();
+  const { userId ,user, logout } = useAuth();
+
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     firstName: user.first_name || '',
@@ -34,11 +35,15 @@ const UpdateAccount = () => {
     }
 
     try {
-      const API_BASE = process.env.REACT_APP_API_BASE || '';
+      const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+      const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/api/users/update`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
+          id: userId,
           first_name: formData.firstName,
           last_name: formData.lastName,
           username: formData.username,

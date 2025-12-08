@@ -6,22 +6,22 @@
   text-align: center;
   font-size: 32px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .Body {
   font-family: 'Fredoka', sans-serif;
   text-align: center;
   font-size: 18px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .BackgroundDiv {
-  background-color: #4b0430ff;
+  background-color: var(--button-primary);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  height: 100%;
+  height: 100vh;
   width: 100%;
   overflow: hidden;
   box-sizing: border-box;
@@ -32,16 +32,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 50vh;
-  padding-top: 5rem;
-  padding-right: 8rem;
+  height: 100%;
+  padding: 2rem;
 }
 
 .Landing-Button {
   font-family: 'Fredoka', sans-serif;
   font-size: 18px;
-  color: rgb(255, 255, 255);
-  background-color: #141414;
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
   border: none;
   border-radius: 12px;
   padding: 12px 24px;
@@ -51,22 +50,96 @@
 }
 
 .Landing-Button:hover {
-  background-color: #f700fff3;
-  color: black;
+  background-color: var(--button-primary-hover);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
 }
 
 .Landing-Button:active {
-  background-color: #8e3e8a;
-  box-shadow: 0 5px #000000;
+  background-color: var(--button-primary-hover);
+  box-shadow: 0 5px var(--shadow);
   transform: translateY(4px);
 }
 
 .TextDiv {
   max-width: 600px;
+  width: 100%;
   text-align: center;
-  padding: 20px;
-  background: #790cd3;
+  padding: 30px;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(233, 0, 0, 0.5);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .MainDiv {
+    padding: 1.5rem;
+    min-height: auto;
+    padding-top: 3rem;
+  }
+
+  .Title {
+    font-size: 28px;
+  }
+
+  .Body {
+    font-size: 16px;
+  }
+
+  .TextDiv {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .Landing-Button {
+    font-size: 16px;
+    padding: 10px 20px;
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .MainDiv {
+    padding: 1rem;
+    padding-top: 2rem;
+  }
+
+  .Title {
+    font-size: 24px;
+  }
+
+  .Body {
+    font-size: 14px;
+  }
+
+  .TextDiv {
+    padding: 15px;
+  }
+
+  .Landing-Button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+}
+
+/* Landscape mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+  .MainDiv {
+    min-height: auto;
+    padding: 1rem;
+  }
+
+  .TextDiv {
+    padding: 15px;
+  }
+
+  .Title {
+    font-size: 24px;
+  }
+
+  .Body {
+    font-size: 14px;
+  }
 }

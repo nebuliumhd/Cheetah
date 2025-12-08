@@ -27,6 +27,36 @@ export const registerUser = async (req, res) => {
         .status(400)
         .json({ message: "Password is required.", body: password });
     }
+    if (password.length < 8)
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters long" });
+
+    if (!/[A-Z]/.test(password))
+      return res
+        .status(400)
+        .json({
+          message: "Password must contain at least one uppercase letter",
+        });
+
+    if (!/[a-z]/.test(password))
+      return res
+        .status(400)
+        .json({
+          message: "Password must contain at least one lowercase letter",
+        });
+
+    if (!/[0-9]/.test(password))
+      return res
+        .status(400)
+        .json({ message: "Password must contain at least one number" });
+
+    if (!/[^A-Za-z0-9]/.test(password))
+      return res
+        .status(400)
+        .json({
+          message: "Password must contain at least one special character",
+        });
 
     // Check for duplicates
     const [existingUsers] = await db.query(
@@ -124,7 +154,7 @@ export const loginUser = async (req, res) => {
       console.error("FATAL: JWT_SECRET is not defined");
       return res.status(500).json({ message: "Server configuration error" });
     }
-    
+
     const token = jwt.sign(
       { id: user.id, username: user.username },
       JWT_SECRET,
@@ -152,7 +182,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// DELETE USER
+// delete user account
 export const deleteUser = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -176,7 +206,7 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// UPDATE USER
+//Update user information
 export const updateUser = async (req, res) => {
   try {
     const { id, first_name, last_name, username, email, password } = req.body;
@@ -242,7 +272,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// GET USER BY USERNAME
+// Get user by username
 export const getUserByUsername = async (req, res) => {
   try {
     const { username } = req.params;
@@ -271,8 +301,8 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ message: "Database error." });
   }
 };
-// UPDATE PROFILE PICTURE
 
+//Update profile picture
 export const updatePFP = async (req, res) => {
   try {
     if (!req.file) {
@@ -300,6 +330,7 @@ export const updatePFP = async (req, res) => {
   }
 };
 
+//Load friends list
 export const getFriends = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -328,6 +359,7 @@ export const getFriends = async (req, res) => {
   }
 };
 
+// Send friend request
 export const sendFriendRequest = async (req, res) => {
   const userId = req.user.id;
   const targetUsername = req.params.username;
@@ -374,6 +406,7 @@ export const sendFriendRequest = async (req, res) => {
   }
 };
 
+// Accept friend request
 export const acceptFriendRequest = async (req, res) => {
   const userId = req.user.id;
   const fromUsername = req.params.username;
@@ -417,6 +450,7 @@ export const acceptFriendRequest = async (req, res) => {
   }
 };
 
+// Decline friend request
 export const declineFriendRequest = async (req, res) => {
   const userId = req.user.id;
   const fromUsername = req.params.username;
@@ -450,6 +484,7 @@ export const declineFriendRequest = async (req, res) => {
   }
 };
 
+// Remove friend
 export const removeFriend = async (req, res) => {
   const userId = req.user.id;
   const username = req.params.username;
@@ -487,7 +522,7 @@ export const removeFriend = async (req, res) => {
   }
 };
 
-// user-controller.js
+// Load incoming friend requests
 export const recieveFriendRequest = async (req, res) => {
   const userId = req.user.id;
 
@@ -507,7 +542,7 @@ export const recieveFriendRequest = async (req, res) => {
   }
 };
 
-// user-controller.js
+//Load outgoing friend requests
 export const pendingFriendRequest = async (req, res) => {
   const userId = req.user.id;
 
@@ -527,6 +562,7 @@ export const pendingFriendRequest = async (req, res) => {
   }
 };
 
+//Update user bio
 export const updateBio = async (req, res) => {
   const userId = req.user.id; // From authMiddleware
   const { bio } = req.body;
@@ -542,5 +578,25 @@ export const updateBio = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update bio" });
+  }
+};
+
+//Get user profile by username
+export const getUserProfile = async (req, res) => {
+  const { username } = req.params;
+  try {
+    const [users] = await db.execute(
+      `SELECT id, first_name, last_name, username, email, bio, profile_picture
+        FROM users
+        WHERE username = ?`,
+      [username]
+    );
+    if (users.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(users[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get user profile" });
   }
 };

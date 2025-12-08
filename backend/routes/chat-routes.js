@@ -8,7 +8,8 @@ import {
     getMessagesByConversationId,
     deleteConversation,
     sendImageToUsername,
-    searchForUsers,
+    //searchForUsers,
+    searchForFriends,
     editMessage,
     deleteMessage,
     // Group chat functions
@@ -33,7 +34,7 @@ router.use(authMiddleware);
 // Get all conversations for logged-in user
 router.get('/', getConversations);
 // Search for a user by username
-router.get('/search-users', searchForUsers);
+//router.get('/search-users', searchForUsers);
 // Get all messages in a conversation by conversation ID
 router.get('/messages/:conversationId', getMessagesByConversationId);
 // Sets a message as read
@@ -72,5 +73,7 @@ router.post('/send-by-username', sendMessageToUsername);
 router.post('/send-video-by-username', uploadVideo, sendVideoToUsername);
 // Send image message to user
 router.post('/send-image-by-username', uploadImage, sendImageToUsername);
+//Search for friends
+router.get('/search-for-friends', searchForFriends);
 
 export default router;

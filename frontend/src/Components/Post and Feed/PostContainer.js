@@ -1,7 +1,9 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import "./PostContainer.css";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
   const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
@@ -16,27 +18,45 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
   const [comments, setComments] = useState(post.comments ?? []);
   const [commentText, setCommentText] = useState("");
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [caption, setEditText] = useState(post.caption || "")
+
+  const navigate = useNavigate();
+
   const authHeader = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   };
 
+  const { userId, username } = useAuth();
+  console.log(userId);
+
   // ---------------- LIKE / UNLIKE ----------------
   const toggleLike = async () => {
-    const url = `${API}/api/posts/${post.id}/like`;
-    const method = userLiked ? "DELETE" : "POST";
+  try {
+    const res = await fetch(`${API}/api/posts/${post.id}/toggle-like`, {
+      method: "POST",
+      headers: authHeader,
+    });
 
-    try {
-      await fetch(url, { method, headers: authHeader });
+    const data = await res.json();
 
-      setLikes((prev) => (userLiked ? prev - 1 : prev + 1));
-      setUserLiked(!userLiked);
+    if (!data.success) return;
 
-      onPostUpdated?.();
-    } catch (err) {
-      console.error("Like error:", err);
+    // Update UI based on backend result
+    if (data.action === "liked") {
+      setLikes((prev) => prev + 1);
+      setUserLiked(true);
+    } else {
+      setLikes((prev) => Math.max(prev - 1, 0));
+      setUserLiked(false);
     }
-  };
+
+    onPostUpdated?.();
+  } catch (err) {
+    console.error("Like error:", err);
+  }
+};
 
   // ---------------- ADD COMMENT ----------------
   const submitComment = async () => {
@@ -64,10 +84,13 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
   // ---------------- DELETE COMMENT ----------------
   const deleteComment = async (commentId) => {
     try {
-      await fetch(`${API}/api/posts/${post.id}/comment/${commentId}`, {
+      const postId = post.id
+      await fetch(`${API}/api/posts/${postId}/comment/${commentId}`, {
         method: "DELETE",
         headers: authHeader,
       });
+
+      console.log(commentId, post.id);
 
       setComments((prev) => prev.filter((c) => c.id !== commentId));
 
@@ -80,7 +103,8 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
   // ---------------- DELETE POST ----------------
   const deletePost = async () => {
     try {
-      await fetch(`${API}/api/posts/${post.id}`, {
+      const postId = post.id
+      await fetch(`${API}/api/posts/${postId}`, {
         method: "DELETE",
         headers: authHeader,
       });
@@ -90,6 +114,61 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
       console.error("Delete post error:", err);
     }
   };
+
+  // ---------------- EDIT POST ----------------
+  const startEdit = () => {
+    setIsEditing(true);
+    setEditText(post.text || "");
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setEditText(post.text || "");
+  };
+
+  const saveEdit = async () => {
+    if (!caption.trim()) {
+      alert("Post text cannot be empty");
+      return;
+    }
+
+    try {
+      const postId = post.id;
+      const res = await fetch(`${API}/api/posts/${postId}`, {
+        method: "PATCH",
+        headers: authHeader,
+        body: JSON.stringify({ text: caption }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update post");
+
+      const data = await res.json();
+      
+      // Update the post text locally
+      post.text = data.text;
+      setIsEditing(false);
+      onPostUpdated?.();
+    } catch (err) {
+      console.error("Edit post error:", err);
+      alert("Failed to update post");
+    }
+  };
+  
+  // const editPost = async () => {
+  //   const newText = prompt("Edit your post:", post.text);
+  //   if (newText === null || newText.trim() === "") return; // Cancelled or empty
+  //   try {
+  //     const postId = post.id
+  //     await fetch(`${API}/api/posts/${postId}`, {
+  //       method: "PATCH",
+  //       headers: authHeader,
+  //       body: JSON.stringify({ text: newText }),
+  //     });
+  //     onPostUpdated?.();
+  //   } catch (err) {
+  //     console.error("Edit post error:", err);
+  //   }
+  // };
 
   // ---------------- TIME AGO ----------------
   const formatTime = (dateString) => {
@@ -109,6 +188,7 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
           src={post.profile_picture ? `${API}${post.profile_picture}` : `${API}/uploads/profiles/default-profile.jpg`}
           alt="avatar"
           className="post-avatar"
+          onClick={() => navigate(`/username/${post.username}`)}
         />
 
         <div className="post-user-info">
@@ -116,16 +196,35 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
           <span className="post-time">{formatTime(post.created_at)}</span>
         </div>
 
-        {post.is_owner && (
+        {(Number(post.user_id) === Number(userId)) && (
           <div className="post-actions">
+            {!isEditing && (
+              <button className="post-edit" onClick = {startEdit}> Edit</button>
+              )
+            }
             <button className="post-delete" onClick={deletePost}>Delete</button>
           </div>
+
         )}
       </div>
 
       {/* POST TEXT */}
-      <p className="post-text">{post.text}</p>
-
+      {isEditing ? (
+        <div>
+          <textarea
+          value={caption}
+          onChange={(e) => setEditText(e.target.value)}
+          // style = {}
+          rows={3}
+          />
+          <button className="edit-save" onClick = {saveEdit}> Save Edit </button>
+          <button className="edit-cancel" onClick = {cancelEdit}> Cancel Edit </button>
+        </div>
+      ) : (
+          <p className="post-text">{post.text}</p>
+        )
+      }
+      
       {/* ATTACHMENTS */}
       {post.attachments?.length > 0 && (
         <div className="post-images">
@@ -153,7 +252,7 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
             <span className="comment-username">{c.username}</span>
             <span className="comment-text">{c.text}</span>
 
-            {c.is_owner && (
+            {( (Number(post.user_id) === Number(userId)) || (Number(c.user_id) === Number(userId)) ) && (
               <button className="comment-delete" onClick={() => deleteComment(c.id)}>
                 ✖
               </button>

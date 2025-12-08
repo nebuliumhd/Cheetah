@@ -8,7 +8,7 @@ import PFPOverlayModal from "../Components/User Settings/PFPOverlayModal";
 import Bio from "../Components/User Settings/Bio";
 import { useState, useEffect } from "react";
 
-const Main = () => {
+const UserProfile = () => {
   const { logout, user, updateProfilePicture } = useAuth();
   const navigate = useNavigate();
 
@@ -16,12 +16,13 @@ const Main = () => {
   const [currentBio, setCurrentBio] = useState("");
 
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
-
+  const token = localStorage.getItem("token");
+  
   // Fetch user's current bio on mount
   useEffect(() => {
     const fetchUserBio = async () => {
       try {
-        const token = localStorage.getItem("token");
+        
         const res = await fetch(
           `${API_BASE}/api/users/username/${user?.username}`,
           {
@@ -111,4 +112,4 @@ const Main = () => {
   );
 };
 
-export default Main;
+export default UserProfile;

@@ -158,6 +158,7 @@ export const getPostById = async (req, res) => {
 export const deletePost = async (req, res) => {
   const { postId } = req.params;
   const userId = req.user.id;
+  console.log(req.user.id)
 
   try {
     const [result] = await db.execute(
@@ -180,6 +181,7 @@ export const deletePost = async (req, res) => {
 
 // ------------------------- UPDATE POST -------------------------
 export const updatePost = async (req, res) => {
+  console.log(req)
   const { postId } = req.params;
   const userId = req.user.id;
   const { text } = req.body;
@@ -224,7 +226,7 @@ export const setPostVisibility = async (req, res) => {
 };
 
 // ------------------------- ADD COMMENT -------------------------
-export const AddCommentToPost = async (req, res) => {
+export const addCommentToPost = async (req, res) => {
   const { postId } = req.params;
   const userId = req.user.id;
   const { text } = req.body;
@@ -251,17 +253,18 @@ export const AddCommentToPost = async (req, res) => {
   }
 };
 
-export const DeleteCommentFromPost = async (req, res) => {
+// ------------------------- DELETE COMMENT -------------------------
+export const deleteCommentFromPost = async (req, res) => {
   const { postId, commentId } = req.params;
-  const userId = req.user.id;
-
+  //const userId = req.user.id;
+  if (!postId || !commentId) {
+    return res.status(400).json({ error: "Missing post_id or comment id" });
+  }
   try {
     // Only comment owner or post owner can delete
     const [result] = await db.execute(
-      `DELETE c FROM comments c
-       JOIN posts p ON c.post_id = p.id
-       WHERE c.id = ? AND c.post_id = ? AND (c.user_id = ? OR p.user_id = ?)`,
-      [commentId, postId, userId, userId]
+       "DELETE FROM comments WHERE id = ? AND post_id = ?",
+      [commentId, postId]
     );
 
     if (!result.affectedRows) return res.status(404).json({ error: "Comment not found" });
@@ -274,28 +277,68 @@ export const DeleteCommentFromPost = async (req, res) => {
 };
 
 // ------------------------- LIKES -------------------------
-export const AddLikeToPost = async (req, res) => {
+// export const AddLikeToPost = async (req, res) => {
+//   const { postId } = req.params;
+//   const userId = req.user.id;
+
+//   try {
+//     // Update likes count and optionally store a likes table for users
+//     await db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [postId]);
+//     res.json({ success: true });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Could not like post" });
+//   }
+// };
+
+// export const RemoveLikeFromPost = async (req, res) => {
+//   const { postId } = req.params;
+
+//   try {
+//     await db.execute("UPDATE posts SET likes = IF(likes>0, likes-1, 0) WHERE id = ?", [postId]);
+//     res.json({ success: true });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Could not unlike post" });
+//   }
+// };
+
+export const toggleLike = async (req, res) => {
   const { postId } = req.params;
   const userId = req.user.id;
-
-  try {
-    // Update likes count and optionally store a likes table for users
-    await db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [postId]);
-    res.json({ success: true });
+  try { 
+    // Check if user already liked the post
+    const [likes] = await db.execute(
+      "SELECT * FROM post_likes WHERE post_id = ? AND user_id = ?",
+      [postId, userId]
+    );
+    let action;
+    if (likes.length) {
+      // User already liked, so remove like
+      await db.execute(
+        "DELETE FROM post_likes WHERE post_id = ? AND user_id = ?",
+        [postId, userId]
+      );
+      await db.execute(
+        "UPDATE posts SET likes = IF(likes>0, likes-1, 0) WHERE id = ?",
+        [postId]
+      );
+      action = "unliked";
+    } else {
+      // User has not liked, so add like
+      await db.execute(
+        "INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)",
+        [postId, userId]
+      );
+      await db.execute(
+        "UPDATE posts SET likes = likes + 1 WHERE id = ?",
+        [postId]
+      );
+      action = "liked";
+    }
+    res.json({ success: true, action });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Could not like post" });
+    res.status(500).json({ error: "Could not toggle like" });
   }
-};
-
-export const RemoveLikeFromPost = async (req, res) => {
-  const { postId } = req.params;
-
-  try {
-    await db.execute("UPDATE posts SET likes = IF(likes>0, likes-1, 0) WHERE id = ?", [postId]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Could not unlike post" });
-  }
-};
+}; 

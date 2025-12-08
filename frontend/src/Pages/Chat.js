@@ -6,7 +6,7 @@ import GroupSettingsModal from "../Components/Chat/GroupSettingsModal";
 import { useAuth } from "../context/AuthContext";
 import "./Chat.css";
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost";
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
 export default function Chat() {
   const { user, userId } = useAuth();

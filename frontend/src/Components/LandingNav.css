@@ -5,11 +5,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #790cd3;
+  background-color: var(--button-primary);
   padding: 12px 32px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
   font-family: 'Fredoka', sans-serif;
-  height: 80px; 
+  height: 80px;
+  box-sizing: border-box;
 }
 
 /* Logo */
@@ -26,14 +27,16 @@
   text-align: center;
   font-size: 32px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-tertiary);
 }
 
 .nav-title-link {
   text-decoration: none;
   font-size: 32px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-tertiary);
+  flex: 1;
+  text-align: center;
 }
 
 /* Nav Links on the Right */
@@ -46,19 +49,26 @@
 /* Nav Link Styling */
 .Links a {
   text-decoration: none;
-  color: #ffffff;
+  color: var(--text-tertiary);
   font-weight: 500;
   font-size: 16px;
   transition: color 0.2s ease;
 }
 
-/* Hover Effect */
-.Links a:hover {
-  color: #00ffaa;
+.Text-link {
+  color: var(--text-tertiary);
 }
 
-/* Button Style*/
-.button1 {
+/* Hover Effect */
+.Links a:hover {
+  color: var(--button-primary-hover);
+  opacity: 0.8;
+}
+
+/* Button Style */
+.button1,
+.register-button,
+.login-button {
   margin-left: 5px;
   border-radius: 8px;
   border: 1px solid transparent;
@@ -66,21 +76,87 @@
   font-size: 16px;
   font-weight: 500;
   font-family: inherit;
-  background-color: #000000;
+  background-color: var(--button-primary-hover);
   cursor: pointer;
   transition: all 0.25s ease;
-  color: white;
+  color: var(--text-tertiary);
 }
 
-.button1:hover {
-  border-color: #000000;
-  background: #ffffff;
-  color: #000000;
+.button1:hover,
+.register-button:hover,
+.login-button:hover {
+  border-color: var(--border-color);
+  background: #5b6eae;
   transform: translateY(-2px);
+  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .name {
-  color: #ffffff;
+  color: var(--text-tertiary);
   font-size: 14px;
   margin-left: 20px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .main_nav {
+    padding: 10px 16px;
+    height: 70px;
+  }
+
+  .nav-title,
+  .nav-title-link {
+    font-size: 24px;
+  }
+
+  .Links {
+    gap: 12px;
+  }
+
+  .Links a {
+    font-size: 14px;
+  }
+
+  .button1 {
+    padding: 0.5em 1em;
+    font-size: 14px;
+  }
+
+  .logo img.logo-image {
+    height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main_nav {
+    padding: 8px 12px;
+    height: 60px;
+  }
+
+  .nav-title,
+  .nav-title-link {
+    font-size: 20px;
+  }
+
+  .Links {
+    gap: 8px;
+  }
+
+  .Links a {
+    font-size: 12px;
+  }
+
+  .button1 {
+    padding: 0.4em 0.8em;
+    font-size: 12px;
+    margin-left: 2px;
+  }
+
+  .logo img.logo-image {
+    height: 40px;
+  }
+
+  .Text-link {
+    display: none; /* Hide "Register" text on very small screens */
+  }
 }

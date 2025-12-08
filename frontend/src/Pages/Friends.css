@@ -30,22 +30,12 @@ h2 {
   letter-spacing: 0.0625rem;
 }
 
-/* Friend / request items */
-.friend-item {
-  align-items: center;
-  justify-content: center;
-  background-color: var(--bg-tertiary);
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  margin-bottom: 0.375rem;
-  transition: background-color 0.2s ease;
-  max-width: 50%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
+/* Friend / request items - now consistent for all */
+.friend-item,
 .friend-request-item {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   background-color: var(--bg-tertiary);
   padding: 0.5rem 0.75rem;
   border-radius: 0.375rem;
@@ -61,14 +51,20 @@ h2 {
 /* Username text */
 .friend-item span,
 .friend-request-item span {
-  flex: 0;
+  flex: 1;
   font-size: 0.875rem;
   color: var(--text-primary);
   word-break: break-word;
   margin-right: 1rem;
 }
 
-/* CONTROLS ALL NAVBAR BUTTONS? */
+/* Button container for request items */
+.friend-request-item .button-group {
+  display: flex;
+  gap: 0.3125rem;
+}
+
+/* CONTROLS ALL BUTTONS */
 button {
   background-color: var(--button-primary-hover);
   border: none;
@@ -77,12 +73,17 @@ button {
   font-size: 0.75rem;
   border-radius: 0.25rem;
   cursor: pointer;
-  margin-left: 0.3125rem;
   transition: background-color 0.2s ease;
+  white-space: nowrap;
 }
 
 button:hover {
   background-color: #5b6eae;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Specific friend request buttons */
@@ -94,11 +95,13 @@ button:hover {
   background-color: #389d70;
 }
 
-.friend-request-item button.decline {
+.friend-request-item button.decline,
+.friend-request-item button.cancel {
   background-color: #f04747;
 }
 
-.friend-request-item button.decline:hover {
+.friend-request-item button.decline:hover,
+.friend-request-item button.cancel:hover {
   background-color: #d43c3c;
 }
 
@@ -111,16 +114,18 @@ hr {
 
 /* Input for adding friends */
 .add-friend {
+  display: flex;
   gap: 0.3125rem;
   margin-bottom: 0.9375rem;
+  justify-content: center;
 }
 
 .add-friend input {
   flex: 1;
   max-width: 25vw;
-  justify-content: center;
   padding: 0.375rem 0.625rem;
   border-radius: 0.25rem;
+  border: 1px solid var(--border-color);
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
 }
@@ -142,17 +147,77 @@ hr {
   margin-right: 0.625rem;
   object-fit: cover;
   border: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+/* Sections with centered containers */
+.friend-section {
+  display: flex;
+  flex-direction: column;
 }
 
 .friend-container {
   display: flex;
   flex-direction: column;
+  max-width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
-.friend-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin-left: 36%;
-  margin-right: 36%;
+/* For "Your Friends" section items */
+.friend-section .friend-item {
+  max-width: 100%;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .friends-page {
+    padding: 1rem;
+  }
+
+  .friends-page h1 {
+    font-size: 1.25rem;
+  }
+
+  .friend-container {
+    max-width: 100%;
+  }
+
+  .friend-section .friend-item {
+    max-width: 100%;
+  }
+
+  .add-friend input {
+    max-width: 100%;
+  }
+
+  button {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .friends-page {
+    padding: 0.75rem;
+  }
+
+  .friends-page h1 {
+    font-size: 1.1rem;
+  }
+
+  h2 {
+    font-size: 0.8rem;
+  }
+
+  .friend-item span,
+  .friend-request-item span {
+    font-size: 0.8rem;
+  }
+
+  .friend-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
 }

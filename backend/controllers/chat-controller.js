@@ -14,6 +14,7 @@ async function findUserByUsername(username) {
   return rows[0] || null;
 }
 
+// ------------------------- SEARCH FOR USERS -------------------------
 export const searchForUsers = async (req, res) => {
   try {
     const { q } = req.query;
@@ -30,7 +31,7 @@ export const searchForUsers = async (req, res) => {
        ORDER BY username ASC
        LIMIT 10`,
       [searchTerm]
-    );
+    );  
 
     const users = rows.map((u) => ({ value: u.username, label: u.username }));
     res.json({ users });
@@ -39,6 +40,43 @@ export const searchForUsers = async (req, res) => {
     res.status(500).json({ error: "Failed to search for users" });
   }
 };
+
+export const searchForFriends = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const userId = req.user.id;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ error: "Query parameter 'q' is required" });
+    }
+
+    const searchTerm = `%${q.trim()}%`;
+    const [rows] = await db.query(
+      `SELECT id, username
+        FROM users
+        WHERE username LIKE ?
+          AND id IN (
+            SELECT CASE
+                    WHEN user_a = ? THEN user_b
+                    ELSE user_a
+                  END
+            FROM friends_lists
+            WHERE status = 'accepted'
+              AND (? IN (user_a, user_b))
+          )
+        ORDER BY username ASC
+        LIMIT 10;
+      `,
+      [searchTerm, userId, userId]
+    );
+
+    const users = rows.map((u) => ({ value: u.username, label: u.username }));
+    res.json({ users });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to search for users" });
+  }
+}
 
 export const sendMessage = async (req, res) => {
   try {
@@ -509,7 +547,15 @@ export const startConversationByUsername = async (req, res) => {
       is_group: false,
     });
   } catch (err) {
+    
+    if (err.code && err.sqlMessage) {
+      // This is a DB-originating error
+      console.log("DB error:", err.sqlMessage);
+      return res.status(400).json({ error: err.sqlMessage });
+    }
+    
     console.error("Error in startConversationByUsername:", err);
+    console.log(err)
     return res
       .status(500)
       .json({ error: "Failed to start conversation for other user" });

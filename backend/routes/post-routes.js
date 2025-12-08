@@ -9,10 +9,11 @@ import {
   getPostById,
   setPostVisibility,
   getFeedPosts,
-  AddCommentToPost,
-  DeleteCommentFromPost,
-  AddLikeToPost,
-  RemoveLikeFromPost,
+  addCommentToPost,
+  deleteCommentFromPost,
+  toggleLike
+  //addLikeToPost,
+  //removeLikeFromPost,
 
 } from "../controllers/post-controller.js";
 
@@ -27,19 +28,21 @@ router.get("/my-posts", getMyPosts);
 router.get("/feed", getFeedPosts);
 // Delete a post
 router.delete("/:postId", deletePost);
-// Update a post
+// Edit a post
 router.patch("/:postId", updatePost);
 // Get a specific post by ID
 router.get("/:postId", getPostById);
 // Set post visibility
 router.patch("/:postId/visibility", setPostVisibility);
 // Add comment to post
-router.post("/:postId/comment", AddCommentToPost);
+router.post("/:postId/comment/", addCommentToPost);
 // Delete comment from post
-router.delete("/:postId/comment/:commentId", DeleteCommentFromPost);
+router.delete("/:postId/comment/:commentId", deleteCommentFromPost);
+// Like/unlike a post
+router.post("/:postId/toggle-like/", toggleLike);
 // Like a post
-router.post("/:postId/like", AddLikeToPost);
+//router.post("/:postId/like", addLikeToPost);
 // Unlike a post
-router.delete("/:postId/like", RemoveLikeFromPost);
+//router.delete("/:postId/like", removeLikeFromPost);
 
 export default router;
