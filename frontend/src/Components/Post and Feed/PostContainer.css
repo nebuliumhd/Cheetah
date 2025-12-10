@@ -106,17 +106,21 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .comment-username {
   font-weight: bold;
   color: var(--text-primary);
+  overflow: hidden;
 }
 
 .comment-text {
   flex: 1;
   color: var(--text-primary);
   background-color: var(--bg-tertiary);
+  overflow-wrap: anywhere;
+  min-width: 30vw;
 }
 
 .comment-delete {
