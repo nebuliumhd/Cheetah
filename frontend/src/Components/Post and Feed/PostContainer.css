@@ -112,6 +112,7 @@
 .comment-username {
   font-weight: bold;
   color: var(--text-primary);
+  overflow: hidden;
 }
 
 .comment-text {
