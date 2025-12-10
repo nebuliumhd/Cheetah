@@ -156,7 +156,7 @@ export default function GroupSettingsModal({
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/chat/search-users?q=${encodeURIComponent(inputValue)}`,
+        `${API_BASE}/api/chat/search-for-friends?q=${encodeURIComponent(inputValue)}`,
         {
           headers: {
             "Content-Type": "application/json",
