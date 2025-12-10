@@ -119,6 +119,7 @@
   color: var(--text-primary);
   background-color: var(--bg-tertiary);
   overflow-wrap: anywhere;
+  min-width: 30vw;
 }
 
 .comment-delete {
