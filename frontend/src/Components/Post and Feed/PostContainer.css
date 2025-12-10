@@ -117,6 +117,7 @@
   flex: 1;
   color: var(--text-primary);
   background-color: var(--bg-tertiary);
+  overflow-wrap: anywhere;
 }
 
 .comment-delete {
