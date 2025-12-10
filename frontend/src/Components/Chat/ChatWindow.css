@@ -104,7 +104,7 @@
   padding: 8px 12px;
   border-radius: 12px;
   max-width: 100%;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   white-space: pre-wrap;
   position: relative;
 }
@@ -112,6 +112,7 @@
 .bubble-sent {
   background-color: var(--button-primary-hover);
   color: var(--text-primary);
+  text-align: left;
 }
 
 .bubble-received {

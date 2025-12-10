@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PostContainer from "../Components/Post and Feed/PostContainer.js";
 import CreatePostForm from "../Components/Post and Feed/CreatePostForm.js";
 
-export default function PostPage() {
+export default function Post() {
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
   const token = localStorage.getItem("token");
   const [posts, setPosts] = useState([]);

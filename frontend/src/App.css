@@ -55,6 +55,24 @@
     border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: auto;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--bg-primary);
+}
+
 .App {
   text-align: center;
 }

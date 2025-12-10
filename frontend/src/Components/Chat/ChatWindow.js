@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import MessageActionsDropdown from "./MessageActionsDropdown";
-import "./ChatWindow.css"
+import "./ChatWindow.css";
 
 const MESSAGES_PER_PAGE = 20;
 const UNLOAD_THRESHOLD = 100;
@@ -106,11 +106,22 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
   // Util
   const parseMessage = (msg) => {
     if (!msg) return "";
-    if (typeof msg === "object" && msg.data)
-      return Array.isArray(msg.data)
-        ? String.fromCharCode(...msg.data)
+
+    if (typeof msg === "string") return msg;
+
+    // Object with binary data
+    if (typeof msg === "object" && msg.data) {
+      const data = Array.isArray(msg.data)
+        ? new Uint8Array(msg.data)
         : msg.data;
-    if (Array.isArray(msg)) return String.fromCharCode(...msg);
+      return new TextDecoder("utf-8").decode(data);
+    }
+
+    // Raw binary
+    if (Array.isArray(msg)) {
+      return new TextDecoder("utf-8").decode(new Uint8Array(msg));
+    }
+
     return msg;
   };
 
@@ -693,323 +704,311 @@ export default function ChatWindow({ conversation, refreshTrigger }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <div className="chat-window" ref={chatWindowRef}>
-          {initialLoading ? (
-            <p className="chat-center-text">Loading messages...</p>
-          ) : !displayedMessages.length ? (
-            <p className="chat-center-text">
-              No messages yet. Start the conversation!
-            </p>
-          ) : (
-            <div style={{ flex: 1 }}>
-              {hasMoreOlder && (
-                <div
-                  style={{
-                    height: "30px",
-                    marginBottom: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {loadingOlder && (
-                    <p
-                      style={{
-                        textAlign: "center",
-                        color: "#888",
-                        fontSize: "12px",
-                      }}
-                    >
-                      Loading older messages...
-                    </p>
+      <div className="chat-window" ref={chatWindowRef}>
+        {initialLoading ? (
+          <p className="chat-center-text">Loading messages...</p>
+        ) : !displayedMessages.length ? (
+          <p className="chat-center-text">
+            No messages yet. Start the conversation!
+          </p>
+        ) : (
+          <div style={{ flex: 1 }}>
+            {hasMoreOlder && (
+              <div
+                style={{
+                  height: "30px",
+                  marginBottom: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {loadingOlder && (
+                  <p
+                    style={{
+                      textAlign: "center",
+                      color: "#888",
+                      fontSize: "12px",
+                    }}
+                  >
+                    Loading older messages...
+                  </p>
+                )}
+              </div>
+            )}
+
+            {displayedMessages.map((msg, index) => {
+              const isSentByMe =
+                String(msg.sender_id) === String(currentUserId);
+              const showUnreadLine =
+                index === firstUnreadIndex && firstUnreadIndex !== null;
+              const isLastSentMessage = index === lastSentMessageIndex;
+              const isEditing = editingMessageId === msg.id;
+
+              const prevMsg = index > 0 ? displayedMessages[index - 1] : null;
+              const isSameSenderAsPrevious =
+                prevMsg && prevMsg.sender_id === msg.sender_id;
+              const showSenderInfo =
+                isGroup && !isSentByMe && !isSameSenderAsPrevious;
+
+              // Check if we need a date separator
+              const showDateSeparator =
+                !prevMsg || !isSameDay(prevMsg.created_at, msg.created_at);
+
+              // Check if we should show timestamp (last message in cluster)
+              const nextMsg =
+                index < displayedMessages.length - 1
+                  ? displayedMessages[index + 1]
+                  : null;
+              const showTimestamp =
+                !nextMsg ||
+                !isSameDay(msg.created_at, nextMsg.created_at) ||
+                !isInSameCluster(msg.created_at, nextMsg.created_at) ||
+                msg.sender_id !== nextMsg.sender_id;
+
+              return (
+                <div key={msg.id}>
+                  {/* Date Separator */}
+                  {showDateSeparator && (
+                    <div className="date-separator">
+                      <div className="date-separator-line" />
+                      <span className="date-separator-text">
+                        {formatDateSeparator(msg.created_at)}
+                      </span>
+                      <div className="date-separator-line" />
+                    </div>
                   )}
-                </div>
-              )}
 
-              {displayedMessages.map((msg, index) => {
-                const isSentByMe =
-                  String(msg.sender_id) === String(currentUserId);
-                const showUnreadLine =
-                  index === firstUnreadIndex && firstUnreadIndex !== null;
-                const isLastSentMessage = index === lastSentMessageIndex;
-                const isEditing = editingMessageId === msg.id;
+                  {/* Unread Line */}
+                  {showUnreadLine && (
+                    <div className="unread-divider">
+                      <div className="unread-line" />
+                      <span className="unread-text">New Messages</span>
+                      <div className="unread-line" />
+                    </div>
+                  )}
 
-                const prevMsg = index > 0 ? displayedMessages[index - 1] : null;
-                const isSameSenderAsPrevious =
-                  prevMsg && prevMsg.sender_id === msg.sender_id;
-                const showSenderInfo =
-                  isGroup && !isSentByMe && !isSameSenderAsPrevious;
-
-                // Check if we need a date separator
-                const showDateSeparator =
-                  !prevMsg || !isSameDay(prevMsg.created_at, msg.created_at);
-
-                // Check if we should show timestamp (last message in cluster)
-                const nextMsg =
-                  index < displayedMessages.length - 1
-                    ? displayedMessages[index + 1]
-                    : null;
-                const showTimestamp =
-                  !nextMsg ||
-                  !isSameDay(msg.created_at, nextMsg.created_at) ||
-                  !isInSameCluster(msg.created_at, nextMsg.created_at) ||
-                  msg.sender_id !== nextMsg.sender_id;
-
-                return (
-                  <div key={msg.id}>
-                    {/* Date Separator */}
-                    {showDateSeparator && (
-                      <div className="date-separator">
-                        <div className="date-separator-line" />
-                        <span className="date-separator-text">
-                          {formatDateSeparator(msg.created_at)}
-                        </span>
-                        <div className="date-separator-line" />
-                      </div>
-                    )}
-
-                    {/* Unread Line */}
-                    {showUnreadLine && (
-                      <div className="unread-divider">
-                        <div className="unread-line" />
-                        <span className="unread-text">New Messages</span>
-                        <div className="unread-line" />
-                      </div>
-                    )}
-
-                    <div
-                      ref={(el) => (messageRefs.current[msg.id] = el)}
-                      data-message-id={msg.id}
-                      className={
-                        isSentByMe
-                          ? "message-row message-sent"
-                          : "message-row message-received"
-                      }
-                    >
-                      {showSenderInfo && (
-                        <div className="group-message-header">
-                          <img
-                            src={
-                              msg.sender_profile_picture
-                                ? `${API_BASE}${msg.sender_profile_picture}`
-                                : `${API_BASE}/uploads/profiles/default-profile.jpg`
-                            }
-                            alt={msg.sender_username || "User"}
-                            className="group-sender-avatar"
-                            onError={(e) => {
-                              e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
-                            }}
-                          />
-                          <div className="sender-label">
-                            {msg.sender_username || "Unknown"}
-                          </div>
+                  <div
+                    ref={(el) => (messageRefs.current[msg.id] = el)}
+                    data-message-id={msg.id}
+                    className={
+                      isSentByMe
+                        ? "message-row message-sent"
+                        : "message-row message-received"
+                    }
+                  >
+                    {showSenderInfo && (
+                      <div className="group-message-header">
+                        <img
+                          src={
+                            msg.sender_profile_picture
+                              ? `${API_BASE}${msg.sender_profile_picture}`
+                              : `${API_BASE}/uploads/profiles/default-profile.jpg`
+                          }
+                          alt={msg.sender_username || "User"}
+                          className="group-sender-avatar"
+                          onError={(e) => {
+                            e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
+                          }}
+                        />
+                        <div className="sender-label">
+                          {msg.sender_username || "Unknown"}
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      <div className="message-content-wrapper">
-                        <div className="message-content">
-                          {msg.message_type === "image" ? (
-                            <div
-                              style={{
-                                display: "inline-block",
-                                maxWidth: "70%",
-                              }}
-                            >
-                              <img
-                                src={`${API_BASE}${parseMessage(
-                                  msg.ciphertext
-                                )}`}
-                                alt=""
-                                className="message-image"
-                                onClick={() =>
-                                  openLightbox(
-                                    `${API_BASE}${parseMessage(msg.ciphertext)}`
-                                  )
-                                }
-                              />
-                              {isSentByMe && isLastSentMessage && (
-                                <div className="message-status">
-                                  {msg.read_at ? (
-                                    <span>
-                                      Read • {formatTimestamp(msg.read_at)}
-                                    </span>
-                                  ) : (
-                                    <span>
-                                      Delivered •{" "}
-                                      {formatTimestamp(msg.created_at)}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ) : msg.message_type === "video" ? (
-                            <div
-                              style={{
-                                display: "inline-block",
-                                maxWidth: "70%",
-                              }}
-                            >
-                              <video
-                                src={`${API_BASE}${parseMessage(
-                                  msg.ciphertext
-                                )}`}
-                                controls
-                                className="message-video"
-                                style={{
-                                  maxWidth: "300px",
-                                  borderRadius: "10px",
-                                }}
-                              />
-                              {isSentByMe && isLastSentMessage && (
-                                <div className="message-status">
-                                  {msg.read_at ? (
-                                    <span>
-                                      Read • {formatTimestamp(msg.read_at)}
-                                    </span>
-                                  ) : (
-                                    <span>
-                                      Delivered •{" "}
-                                      {formatTimestamp(msg.created_at)}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ) : isEditing ? (
-                            <div className="edit-message-container">
-                              <input
-                                ref={editInputRef}
-                                type="text"
-                                className="edit-message-input"
-                                value={editText}
-                                onChange={(e) => setEditText(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    handleSaveEdit(msg.id);
-                                  } else if (e.key === "Escape") {
-                                    handleCancelEdit();
-                                  }
-                                }}
-                              />
-                              <div className="edit-message-actions">
-                                <button
-                                  className="edit-btn save"
-                                  onClick={() => handleSaveEdit(msg.id)}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  className="edit-btn cancel"
-                                  onClick={handleCancelEdit}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div
-                              style={{
-                                display: "inline-block",
-                                textAlign: isSentByMe ? "right" : "left",
-                              }}
-                            >
-                              <span
-                                className={`message-bubble ${
-                                  isSentByMe ? "bubble-sent" : "bubble-received"
-                                }`}
-                              >
-                                {parseMessage(msg.ciphertext)}
-                                {msg.edited_at && (
-                                  <span className="edited-indicator">
-                                    {" "}
-                                    (edited)
+                    <div className="message-content-wrapper">
+                      <div className="message-content">
+                        {msg.message_type === "image" ? (
+                          <div
+                            style={{
+                              display: "inline-block",
+                              maxWidth: "70%",
+                            }}
+                          >
+                            <img
+                              src={`${API_BASE}${parseMessage(msg.ciphertext)}`}
+                              alt=""
+                              className="message-image"
+                              onClick={() =>
+                                openLightbox(
+                                  `${API_BASE}${parseMessage(msg.ciphertext)}`
+                                )
+                              }
+                            />
+                            {isSentByMe && isLastSentMessage && (
+                              <div className="message-status">
+                                {msg.read_at ? (
+                                  <span>
+                                    Read • {formatTimestamp(msg.read_at)}
+                                  </span>
+                                ) : (
+                                  <span>
+                                    Delivered •{" "}
+                                    {formatTimestamp(msg.created_at)}
                                   </span>
                                 )}
-                              </span>
-
-                              {/* Show timestamp for messages in cluster */}
-                              {showTimestamp && (
-                                <div
-                                  className={`message-timestamp ${
-                                    isSentByMe
-                                      ? "timestamp-sent"
-                                      : "timestamp-received"
-                                  }`}
-                                >
-                                  {formatMessageTime(msg.created_at)}
-                                </div>
-                              )}
-
-                              {isSentByMe && isLastSentMessage && (
-                                <div className="message-status">
-                                  {msg.read_at ? (
-                                    <span>
-                                      Read • {formatTimestamp(msg.read_at)}
-                                    </span>
-                                  ) : (
-                                    <span>
-                                      Delivered •{" "}
-                                      {formatTimestamp(msg.created_at)}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
+                              </div>
+                            )}
+                          </div>
+                        ) : msg.message_type === "video" ? (
+                          <div
+                            style={{
+                              display: "inline-block",
+                              maxWidth: "70%",
+                            }}
+                          >
+                            <video
+                              src={`${API_BASE}${parseMessage(msg.ciphertext)}`}
+                              controls
+                              className="message-video"
+                              style={{
+                                maxWidth: "300px",
+                                borderRadius: "10px",
+                              }}
+                            />
+                            {isSentByMe && isLastSentMessage && (
+                              <div className="message-status">
+                                {msg.read_at ? (
+                                  <span>
+                                    Read • {formatTimestamp(msg.read_at)}
+                                  </span>
+                                ) : (
+                                  <span>
+                                    Delivered •{" "}
+                                    {formatTimestamp(msg.created_at)}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : isEditing ? (
+                          <div className="edit-message-container">
+                            <input
+                              ref={editInputRef}
+                              type="text"
+                              className="edit-message-input"
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  handleSaveEdit(msg.id);
+                                } else if (e.key === "Escape") {
+                                  handleCancelEdit();
+                                }
+                              }}
+                            />
+                            <div className="edit-message-actions">
+                              <button
+                                className="edit-btn save"
+                                onClick={() => handleSaveEdit(msg.id)}
+                              >
+                                Save
+                              </button>
+                              <button
+                                className="edit-btn cancel"
+                                onClick={handleCancelEdit}
+                              >
+                                Cancel
+                              </button>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              display: "inline-block",
+                              textAlign: isSentByMe ? "right" : "left",
+                            }}
+                          >
+                            <span
+                              className={`message-bubble ${
+                                isSentByMe ? "bubble-sent" : "bubble-received"
+                              }`}
+                            >
+                              {parseMessage(msg.ciphertext)}
+                              {msg.edited_at && (
+                                <span className="edited-indicator">
+                                  {" "}
+                                  (edited)
+                                </span>
+                              )}
+                            </span>
 
-                        {isSentByMe && !isEditing && (
-                          <MessageActionsDropdown
-                            message={msg}
-                            onEdit={handleEditMessage}
-                            onDelete={handleDeleteMessage}
-                            position={
-                              isSentByMe ? "bottom-left" : "bottom-right"
-                            }
-                          />
+                            {/* Show timestamp for messages in cluster */}
+                            {showTimestamp && (
+                              <div
+                                className={`message-timestamp ${
+                                  isSentByMe
+                                    ? "timestamp-sent"
+                                    : "timestamp-received"
+                                }`}
+                              >
+                                {formatMessageTime(msg.created_at)}
+                              </div>
+                            )}
+
+                            {isSentByMe && isLastSentMessage && (
+                              <div className="message-status">
+                                {msg.read_at ? (
+                                  <span>
+                                    Read • {formatTimestamp(msg.read_at)}
+                                  </span>
+                                ) : (
+                                  <span>
+                                    Delivered •{" "}
+                                    {formatTimestamp(msg.created_at)}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
+
+                      {isSentByMe && !isEditing && (
+                        <MessageActionsDropdown
+                          message={msg}
+                          onEdit={handleEditMessage}
+                          onDelete={handleDeleteMessage}
+                          position={isSentByMe ? "bottom-left" : "bottom-right"}
+                        />
+                      )}
                     </div>
                   </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
 
-          {lightboxMounted && lightBoxImage && (
-            <div
-              className={`lightbox-overlay ${showLightbox ? "visible" : ""}`}
-              onClick={closeLightbox}
-            >
-              <img
-                src={lightBoxImage}
-                alt=""
-                draggable={false}
-                onClick={(e) => e.stopPropagation()}
-                onWheel={handleWheel}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseLeave}
-                className="lightbox-image"
-                style={{
-                  transform: `scale(${zoom}) translate(${
-                    offset.x / Math.max(zoom, 1)
-                  }px, ${offset.y / Math.max(zoom, 1)}px)`,
-                  transition: isDragging
-                    ? "none"
-                    : "transform 0.3s ease-in-out",
-                  cursor: isDragging
-                    ? "grabbing"
-                    : zoom > 1
-                    ? "grab"
-                    : "default",
-                }}
-              />
-            </div>
-          )}
-        </div>
+        {lightboxMounted && lightBoxImage && (
+          <div
+            className={`lightbox-overlay ${showLightbox ? "visible" : ""}`}
+            onClick={closeLightbox}
+          >
+            <img
+              src={lightBoxImage}
+              alt=""
+              draggable={false}
+              onClick={(e) => e.stopPropagation()}
+              onWheel={handleWheel}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              className="lightbox-image"
+              style={{
+                transform: `scale(${zoom}) translate(${
+                  offset.x / Math.max(zoom, 1)
+                }px, ${offset.y / Math.max(zoom, 1)}px)`,
+                transition: isDragging ? "none" : "transform 0.3s ease-in-out",
+                cursor: isDragging ? "grabbing" : zoom > 1 ? "grab" : "default",
+              }}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

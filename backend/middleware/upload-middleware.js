@@ -62,7 +62,7 @@ const imageUpload = multer({
 // Video upload configuration (50MB limit for videos)
 const videoUpload = multer({
   storage: videoStorage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = /mp4|mov|avi|mkv|webm/;
     const extname = allowedTypes.test(
@@ -78,6 +78,7 @@ const videoUpload = multer({
   },
 });
 
+// Middleware functions for handling uploads
 export const uploadImage = (req, res, next) => {
   imageUpload.single("image")(req, res, (err) => {
     if (err) {

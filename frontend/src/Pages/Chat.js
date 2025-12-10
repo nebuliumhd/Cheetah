@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ConversationList from "../Components/Chat/ConversationList";
 import ChatWindow from "../Components/Chat/ChatWindow";
 import MessageInput from "../Components/Chat/MessageInput";
@@ -11,7 +12,7 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 export default function Chat() {
   const { user, userId } = useAuth();
   const currentUserId = userId || user?.id;
-  
+
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showGroupSettings, setShowGroupSettings] = useState(false);
@@ -19,6 +20,8 @@ export default function Chat() {
   const [showSidebar, setShowSidebar] = useState(true);
 
   const token = localStorage.getItem("token");
+
+  const navigate = useNavigate();
 
   // Load conversations
   useEffect(() => {
@@ -45,15 +48,15 @@ export default function Chat() {
         }
 
         const data = await res.json();
-        
+
         if (!isActive) return; // Component unmounted
-        
+
         const newConversations = Array.isArray(data.conversations)
           ? data.conversations
           : [];
 
         setConversations(newConversations);
-        
+
         // Update selected conversation if it exists in the new list
         if (selectedConversation) {
           const updatedConv = newConversations.find(
@@ -90,7 +93,7 @@ export default function Chat() {
   };
 
   const handleSelectConversation = (conversation) => {
-    console.log('Selected conversation:', conversation);
+    console.log("Selected conversation:", conversation);
     setSelectedConversation(conversation);
     setShowGroupSettings(false);
     // Hide sidebar on mobile when conversation is selected
@@ -115,45 +118,38 @@ export default function Chat() {
   // Get correct member count for groups
   const getMemberCount = (conversation) => {
     if (!conversation || !conversation.is_group) return 0;
-    
+
     if (Array.isArray(conversation.participant_ids)) {
       return conversation.participant_ids.length;
     }
-    
+
     return 0;
   };
 
   // Show loading state if no token
   if (!token) {
-    return (
-      <div className="chat-loading">
-        Please log in to access chat
-      </div>
-    );
+    return <div className="chat-loading">Please log in to access chat</div>;
   }
 
   return (
     <div className="chat-page">
       {/* Sidebar */}
-      <div className={`chat-sidebar ${showSidebar ? 'show' : 'hide'}`}>
-        <ConversationList 
-          onSelect={handleSelectConversation} 
+      <div className={`chat-sidebar ${showSidebar ? "show" : "hide"}`}>
+        <ConversationList
+          onSelect={handleSelectConversation}
           conversations={conversations}
           isSidebarOpen={showSidebar}
         />
       </div>
 
       {/* Chat Area */}
-      <div className={`chat-main ${!showSidebar ? 'show' : 'hide'}`}>
+      <div className={`chat-main ${!showSidebar ? "show" : "hide"}`}>
         {selectedConversation ? (
           <>
             {/* Header */}
             <div className="chat-header">
               {/* Back button for mobile */}
-              <button 
-                className="chat-back-btn"
-                onClick={handleBackToList}
-              >
+              <button className="chat-back-btn" onClick={handleBackToList}>
                 ←
               </button>
 
@@ -163,6 +159,7 @@ export default function Chat() {
                   src={getConversationPfp(selectedConversation)}
                   alt="Profile"
                   className="chat-header-avatar"
+                  onClick={() => navigate(`/username/${selectedConversation.other_user_username}`)}
                   onError={(e) => {
                     e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
                   }}

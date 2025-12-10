@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../App.css";
 import "./PostContainer.css";
 import { useAuth } from "../../context/AuthContext";
 
-export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
+export default function PostContainer({ post = {}, onPostUpdated, onPostDeleted }) {
   const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
   const token = localStorage.getItem("token");
 
@@ -20,6 +19,10 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [caption, setEditText] = useState(post.caption || "")
+  
+  // For read more/less functionality
+  const [isExpanded, setIsExpanded] = useState(false);
+  const MAX_LENGTH = 300; // Characters before truncating
 
   const navigate = useNavigate();
 
@@ -153,22 +156,6 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
       alert("Failed to update post");
     }
   };
-  
-  // const editPost = async () => {
-  //   const newText = prompt("Edit your post:", post.text);
-  //   if (newText === null || newText.trim() === "") return; // Cancelled or empty
-  //   try {
-  //     const postId = post.id
-  //     await fetch(`${API}/api/posts/${postId}`, {
-  //       method: "PATCH",
-  //       headers: authHeader,
-  //       body: JSON.stringify({ text: newText }),
-  //     });
-  //     onPostUpdated?.();
-  //   } catch (err) {
-  //     console.error("Edit post error:", err);
-  //   }
-  // };
 
   // ---------------- TIME AGO ----------------
   const formatTime = (dateString) => {
@@ -177,6 +164,45 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
+  };
+
+  // ---------------- RENDER POST TEXT ----------------
+  const renderPostText = () => {
+    const postText = post.text || "";
+    const isLongPost = postText.length > MAX_LENGTH;
+
+    if (isEditing) {
+      return (
+        <div className="post-edit-container">
+          <textarea
+            value={caption}
+            onChange={(e) => setEditText(e.target.value)}
+            rows={3}
+            className="post-edit-textarea"
+          />
+          <button className="edit-save" onClick={saveEdit}> Save Edit </button>
+          <button className="edit-cancel" onClick={cancelEdit}> Cancel Edit </button>
+        </div>
+      );
+    }
+
+    if (!isLongPost) {
+      return <p className="post-text">{postText}</p>;
+    }
+
+    return (
+      <div>
+        <p className="post-text">
+          {isExpanded ? postText : `${postText.substring(0, MAX_LENGTH)}...`}
+        </p>
+        <button 
+          className="read-more-btn" 
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? "Read less" : "Read more"}
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -199,31 +225,15 @@ export default function Post({ post = {}, onPostUpdated, onPostDeleted }) {
         {(Number(post.user_id) === Number(userId)) && (
           <div className="post-actions">
             {!isEditing && (
-              <button className="post-edit" onClick = {startEdit}> Edit</button>
-              )
-            }
+              <button className="post-edit" onClick={startEdit}> Edit</button>
+            )}
             <button className="post-delete" onClick={deletePost}>Delete</button>
           </div>
-
         )}
       </div>
 
       {/* POST TEXT */}
-      {isEditing ? (
-        <div>
-          <textarea
-          value={caption}
-          onChange={(e) => setEditText(e.target.value)}
-          // style = {}
-          rows={3}
-          />
-          <button className="edit-save" onClick = {saveEdit}> Save Edit </button>
-          <button className="edit-cancel" onClick = {cancelEdit}> Cancel Edit </button>
-        </div>
-      ) : (
-          <p className="post-text">{post.text}</p>
-        )
-      }
+      {renderPostText()}
       
       {/* ATTACHMENTS */}
       {post.attachments?.length > 0 && (

@@ -17,12 +17,11 @@ const UserProfile = () => {
 
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
   const token = localStorage.getItem("token");
-  
+
   // Fetch user's current bio on mount
   useEffect(() => {
     const fetchUserBio = async () => {
       try {
-        
         const res = await fetch(
           `${API_BASE}/api/users/username/${user?.username}`,
           {
@@ -74,19 +73,21 @@ const UserProfile = () => {
       <Bio currentBio={currentBio} />
 
       <div className="account-buttons">
-        <PFPOverlayModal
-          isOpen={isModalOpen}
-          onClose={() => setModalOpen(false)}
-          currentProfile={user?.profile_picture}
-          onUploadSuccess={(newPath) => {
-            // Update profile picture in AuthContext
-            updateProfilePicture(newPath);
-            setModalOpen(false);
-          }}
-        />
-        <button className="custom-button1" onClick={() => setModalOpen(true)}>
-          Change Profile Picture
-        </button>
+        <div>
+          <PFPOverlayModal
+            isOpen={isModalOpen}
+            onClose={() => setModalOpen(false)}
+            currentProfile={user?.profile_picture}
+            onUploadSuccess={(newPath) => {
+              // Update profile picture in AuthContext
+              updateProfilePicture(newPath);
+              setModalOpen(false);
+            }}
+          />
+          <button className="custom-button1" onClick={() => setModalOpen(true)}>
+            Edit Picture
+          </button>
+        </div>
         <DeleteAccount />
         <UpdateAccount />
       </div>

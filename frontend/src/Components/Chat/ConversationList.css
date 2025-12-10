@@ -3,8 +3,12 @@
   height: 100%;
 }
 
+.conversation-text {
+  margin-top: 3vh;
+  margin-bottom: 3vh;
+}
+
 .conversation-list {
-  width: 280px;
   border-right: 1px solid var(--border-color);
   padding: 10px;
   background: var(--bg-secondary);
@@ -13,6 +17,11 @@
   transition: transform 0.3s ease;
   box-sizing: border-box;
   height: 100%;
+  max-width: 280px;
+}
+
+.conversation-list > * {
+  max-width: 100%;
 }
 
 /* Mobile: Fixed positioning and slide behavior */
@@ -71,7 +80,7 @@
   cursor: pointer;
   flex-shrink: 0;
   background-color: var(--button-primary-hover);
-  color: var(--text-primary);
+  color: white;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 18px;
@@ -110,7 +119,7 @@
 
 /* Conversation Item */
 .conv-item {
-  background-color: var(--card-bg);
+  background-color: var(--bg-tertiary);
   display: flex;
   justify-content: space-between;
   align-items: center;

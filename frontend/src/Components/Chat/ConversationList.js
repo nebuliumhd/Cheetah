@@ -323,7 +323,7 @@ export default function ConversationList({
   const convListStyles = {
     control: (provided, state) => ({
       ...provided,
-      backgroundColor: "var(--bg-secondary)",
+      backgroundColor: "var(--bg-tertiary)",
       borderColor: state.isFocused
         ? "var(--button-primary)"
         : "var(--border-color)",
@@ -384,6 +384,20 @@ export default function ConversationList({
       ...provided,
       color: "var(--text-secondary)",
     }),
+    multiValue: (provided) => ({
+      ...provided,
+      color: "white",
+      backgroundColor: "var(--button-primary-hover)",
+    }),
+    multiValueLabel: (provided) => ({
+      ...provided,
+      color: "white",
+      backgroundColor: "var(--button-primary-hover)",
+    }),
+    multiValueRemove: (provided) => ({
+      ...provided,
+      backgroundColor: "var(--button-primary)",
+    }),
   };
 
   return (
@@ -396,7 +410,7 @@ export default function ConversationList({
 
       {/* Conversation List */}
       <div className={`conversation-list ${sidebarOpen ? "open" : ""}`}>
-        <h3 style={{ color: "var(--text-primary)" }}>Your Conversations</h3>
+        <h3 className={"conversation-text"}>Your Conversations</h3>
 
         <div className="one-to-one-box">
           <AsyncSelect
@@ -491,9 +505,11 @@ export default function ConversationList({
                   width: "100%",
                   padding: "10px",
                   marginBottom: "15px",
-                  border: "1px solid #ccc",
+                  border: "1px solid var(--border-color)",
                   borderRadius: "4px",
                   fontSize: "14px",
+                  color: "var(--text-primary)",
+                  backgroundColor: "var(--bg-tertiary)",
                   boxSizing: "border-box",
                 }}
               />
@@ -507,9 +523,7 @@ export default function ConversationList({
                   value={selectedMembers}
                   onChange={setSelectedMembers}
                   placeholder="Search and add members..."
-                  styles={{
-                    menu: (base) => ({ ...base, zIndex: 1000000 }),
-                  }}
+                  styles={convListStyles}
                 />
               </div>
 
@@ -519,7 +533,7 @@ export default function ConversationList({
                   style={{
                     flex: 1,
                     padding: "10px 20px",
-                    backgroundColor: "var(--bg-tertiary)",
+                    backgroundColor: "var(--button-primary-hover)",
                     color: "white",
                     border: "none",
                     borderRadius: "4px",

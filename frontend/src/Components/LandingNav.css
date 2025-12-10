@@ -11,6 +11,7 @@
   font-family: 'Fredoka', sans-serif;
   height: 80px;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* Logo */
@@ -23,11 +24,13 @@
 /* Title in the Center */
 .nav-title {
   text-decoration: none;
-  flex: 1;
-  text-align: center;
   font-size: 32px;
   font-weight: 700;
   color: var(--text-tertiary);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .nav-title-link {
@@ -117,7 +120,8 @@
     font-size: 14px;
   }
 
-  .button1 {
+  .register-button,
+  .login-button {
     padding: 0.5em 1em;
     font-size: 14px;
   }
@@ -135,18 +139,15 @@
 
   .nav-title,
   .nav-title-link {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .Links {
     gap: 8px;
   }
 
-  .Links a {
-    font-size: 12px;
-  }
-
-  .button1 {
+  .register-button,
+  .login-button {
     padding: 0.4em 0.8em;
     font-size: 12px;
     margin-left: 2px;
@@ -154,9 +155,5 @@
 
   .logo img.logo-image {
     height: 40px;
-  }
-
-  .Text-link {
-    display: none; /* Hide "Register" text on very small screens */
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import AsyncSelect from "react-select/async";
 import "../../App.css";
 import "./GroupSettingsModal.css";
@@ -23,6 +24,8 @@ export default function GroupSettingsModal({
   const isCreator = createdBy === currentUserId;
   const token = localStorage.getItem("token");
   const participantUpdateTimeoutRef = useRef(null);
+
+  const navigate = useNavigate();
 
   const loadParticipants = useCallback(async () => {
     try {
@@ -49,7 +52,7 @@ export default function GroupSettingsModal({
         if (participantUpdateTimeoutRef.current) {
           clearTimeout(participantUpdateTimeoutRef.current);
         }
-        
+
         participantUpdateTimeoutRef.current = setTimeout(() => {
           onParticipantsChanged(data.participants?.length || 0);
         }, 300);
@@ -63,7 +66,7 @@ export default function GroupSettingsModal({
 
   useEffect(() => {
     loadParticipants();
-    
+
     return () => {
       if (participantUpdateTimeoutRef.current) {
         clearTimeout(participantUpdateTimeoutRef.current);
@@ -90,7 +93,7 @@ export default function GroupSettingsModal({
       // Optimistic update
       setParticipants((prev) => {
         const updated = prev.filter((p) => p.username !== username);
-        
+
         // Notify parent with new count
         if (onParticipantsChanged) {
           if (participantUpdateTimeoutRef.current) {
@@ -100,7 +103,7 @@ export default function GroupSettingsModal({
             onParticipantsChanged(updated.length);
           }, 300);
         }
-        
+
         return updated;
       });
     } catch (err) {
@@ -204,7 +207,7 @@ export default function GroupSettingsModal({
       // Close modal immediately
       setShowAddUserModal(false);
       setSelectedUserToAdd(null);
-      
+
       // Reload participants (debounced notification)
       await loadParticipants();
     } catch (err) {
@@ -213,13 +216,100 @@ export default function GroupSettingsModal({
     }
   };
 
+  const convListStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      backgroundColor: "var(--bg-tertiary)",
+      borderColor: state.isFocused
+        ? "var(--button-primary)"
+        : "var(--border-color)",
+      boxShadow: state.isFocused
+        ? "0 0 0 1px var(--button-primary)"
+        : provided.boxShadow,
+      "&:hover": {
+        borderColor: "var(--button-primary)",
+      },
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: "var(--text-primary)",
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: "var(--bg-secondary)",
+      border: "1px solid var(--border-color)",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected
+        ? "var(--button-primary)"
+        : state.isFocused
+        ? "var(--bg-tertiary)"
+        : "transparent",
+      color: state.isSelected ? "var(--text-tertiary)" : "var(--text-primary)",
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: "var(--text-secondary)",
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "var(--text-primary)",
+    }),
+    indicatorSeparator: (provided) => ({
+      ...provided,
+      backgroundColor: "var(--border-color)",
+    }),
+    dropdownIndicator: (provided, state) => ({
+      ...provided,
+      color: state.isFocused ? "var(--text-primary)" : "var(--text-secondary)",
+    }),
+    clearIndicator: (provided) => ({
+      ...provided,
+      color: "var(--text-secondary)",
+    }),
+    loadingIndicator: (provided) => ({
+      ...provided,
+      color: "var(--button-primary)",
+    }),
+    noOptionsMessage: (provided) => ({
+      ...provided,
+      color: "var(--text-secondary)",
+    }),
+    loadingMessage: (provided) => ({
+      ...provided,
+      color: "var(--text-secondary)",
+    }),
+    multiValue: (provided) => ({
+      ...provided,
+      color: "white",
+      backgroundColor: "var(--button-primary-hover)",
+    }),
+    multiValueLabel: (provided) => ({
+      ...provided,
+      color: "white",
+      backgroundColor: "var(--button-primary-hover)",
+    }),
+    multiValueRemove: (provided) => ({
+      ...provided,
+      backgroundColor: "var(--button-primary)",
+    }),
+  };
+
   return (
     <div className="group-settings-overlay" onClick={onClose}>
-      <div className="group-settings-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="group-settings-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="group-settings-header">
           <h2 className="group-settings-title">Group Settings</h2>
-          <button onClick={onClose} className="group-settings-close-btn" title="Close">
+          <button
+            onClick={onClose}
+            className="group-settings-close-btn"
+            title="Close"
+          >
             ×
           </button>
         </div>
@@ -238,7 +328,10 @@ export default function GroupSettingsModal({
                   className="group-name-input"
                   autoFocus
                 />
-                <button onClick={handleUpdateGroupName} className="group-name-save-btn">
+                <button
+                  onClick={handleUpdateGroupName}
+                  className="group-name-save-btn"
+                >
                   Save
                 </button>
                 <button
@@ -255,7 +348,10 @@ export default function GroupSettingsModal({
               <div className="group-name-display">
                 <span className="group-name-text">{groupName}</span>
                 {isCreator && (
-                  <button onClick={() => setIsEditingName(true)} className="group-name-edit-btn">
+                  <button
+                    onClick={() => setIsEditingName(true)}
+                    className="group-name-edit-btn"
+                  >
                     Edit
                   </button>
                 )}
@@ -265,7 +361,9 @@ export default function GroupSettingsModal({
 
           {/* Members Section */}
           <div className="members-section">
-            <label className="members-label">Members ({participants.length})</label>
+            <label className="members-label">
+              Members ({participants.length})
+            </label>
 
             {loading ? (
               <p className="members-loading">Loading members...</p>
@@ -273,7 +371,8 @@ export default function GroupSettingsModal({
               <div className="members-list">
                 {participants.map((participant) => {
                   const isCurrentUser = participant.user_id === currentUserId;
-                  const isParticipantCreator = participant.user_id === conversation.created_by;
+                  const isParticipantCreator =
+                    participant.user_id === conversation.created_by;
 
                   return (
                     <div key={participant.user_id} className="participant-item">
@@ -285,8 +384,14 @@ export default function GroupSettingsModal({
                         }
                         alt={participant.username}
                         className="participant-avatar"
+                        onClick={() =>
+                          navigate(`/username/${participant.username}`)
+                        }
                         onError={(e) => {
-                          if (e.target.src !== `${API_BASE}/uploads/profiles/default-profile.jpg`) {
+                          if (
+                            e.target.src !==
+                            `${API_BASE}/uploads/profiles/default-profile.jpg`
+                          ) {
                             e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
                           }
                         }}
@@ -302,14 +407,19 @@ export default function GroupSettingsModal({
                       </div>
 
                       {isParticipantCreator && (
-                        <span className="participant-creator-icon" title="Group Creator">
+                        <span
+                          className="participant-creator-icon"
+                          title="Group Creator"
+                        >
                           👑
                         </span>
                       )}
 
                       {isCreator && !isCurrentUser && !isParticipantCreator && (
                         <button
-                          onClick={() => handleRemoveParticipant(participant.username)}
+                          onClick={() =>
+                            handleRemoveParticipant(participant.username)
+                          }
                           className="participant-remove-btn"
                           title="Remove from group"
                         >
@@ -373,9 +483,7 @@ export default function GroupSettingsModal({
                 value={selectedUserToAdd}
                 onChange={setSelectedUserToAdd}
                 placeholder="Search for users..."
-                styles={{
-                  container: (base) => ({ ...base, marginBottom: "0" }),
-                }}
+                styles={convListStyles}
                 autoFocus
               />
             </div>

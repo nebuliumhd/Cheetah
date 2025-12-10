@@ -1,4 +1,4 @@
-import { db }  from "../db.js";
+import { db } from "../db.js";
 
 export const createPost = async (req, res) => {
   const userId = req.user.id;
@@ -34,7 +34,7 @@ export const createPost = async (req, res) => {
   }
 };
 
-
+// ------------------------- GET MY POSTS -------------------------
 // ------------------------- GET MY POSTS -------------------------
 export const getMyPosts = async (req, res) => {
   const userId = req.user.id;
@@ -50,13 +50,32 @@ export const getMyPosts = async (req, res) => {
       [userId]
     );
 
-    // Get attachments for each post
+    // Get attachments, comments, and like status for each post
     for (const post of posts) {
+      // Get attachments
       const [attachments] = await db.execute(
         "SELECT * FROM post_attachments WHERE post_id = ?",
         [post.id]
       );
       post.attachments = attachments;
+
+      // Get comments
+      const [comments] = await db.execute(
+        `SELECT c.*, u.username, u.profile_picture 
+         FROM comments c
+         JOIN users u ON u.id = c.user_id
+         WHERE c.post_id = ?
+         ORDER BY c.created_at ASC`,
+        [post.id]
+      );
+      post.comments = comments;
+
+      // Check if current user has liked this post
+      const [userLike] = await db.execute(
+        "SELECT * FROM post_likes WHERE post_id = ? AND user_id = ?",
+        [post.id, userId]
+      );
+      post.user_liked = userLike.length > 0; // true if user liked, false otherwise
     }
 
     res.json(posts);
@@ -90,12 +109,14 @@ export const getFeedPosts = async (req, res) => {
     );
 
     for (const post of posts) {
+      // Get attachments
       const [attachments] = await db.execute(
         "SELECT * FROM post_attachments WHERE post_id = ?",
         [post.id]
       );
       post.attachments = attachments;
 
+      // Get comments
       const [comments] = await db.execute(
         `SELECT c.*, u.username, u.profile_picture 
          FROM comments c
@@ -105,6 +126,13 @@ export const getFeedPosts = async (req, res) => {
         [post.id]
       );
       post.comments = comments;
+
+      // Check if current user has liked this post
+      const [userLike] = await db.execute(
+        "SELECT * FROM post_likes WHERE post_id = ? AND user_id = ?",
+        [post.id, userId]
+      );
+      post.user_liked = userLike.length > 0; // true if user liked, false otherwise
     }
 
     res.json(posts);
@@ -158,7 +186,7 @@ export const getPostById = async (req, res) => {
 export const deletePost = async (req, res) => {
   const { postId } = req.params;
   const userId = req.user.id;
-  console.log(req.user.id)
+  console.log(req.user.id);
 
   try {
     const [result] = await db.execute(
@@ -166,10 +194,13 @@ export const deletePost = async (req, res) => {
       [postId, userId]
     );
 
-    if (!result.affectedRows) return res.status(404).json({ error: "Post not found" });
+    if (!result.affectedRows)
+      return res.status(404).json({ error: "Post not found" });
 
     // Optionally delete attachments and comments
-    await db.execute("DELETE FROM post_attachments WHERE post_id = ?", [postId]);
+    await db.execute("DELETE FROM post_attachments WHERE post_id = ?", [
+      postId,
+    ]);
     await db.execute("DELETE FROM comments WHERE post_id = ?", [postId]);
 
     res.json({ success: true });
@@ -181,7 +212,7 @@ export const deletePost = async (req, res) => {
 
 // ------------------------- UPDATE POST -------------------------
 export const updatePost = async (req, res) => {
-  console.log(req)
+  console.log(req);
   const { postId } = req.params;
   const userId = req.user.id;
   const { text } = req.body;
@@ -192,7 +223,8 @@ export const updatePost = async (req, res) => {
       [text, postId, userId]
     );
 
-    if (!result.affectedRows) return res.status(404).json({ error: "Post not found" });
+    if (!result.affectedRows)
+      return res.status(404).json({ error: "Post not found" });
 
     res.json({ success: true, text });
   } catch (err) {
@@ -216,7 +248,8 @@ export const setPostVisibility = async (req, res) => {
       [visibility, postId, userId]
     );
 
-    if (!result.affectedRows) return res.status(404).json({ error: "Post not found" });
+    if (!result.affectedRows)
+      return res.status(404).json({ error: "Post not found" });
 
     res.json({ success: true, visibility });
   } catch (err) {
@@ -263,11 +296,12 @@ export const deleteCommentFromPost = async (req, res) => {
   try {
     // Only comment owner or post owner can delete
     const [result] = await db.execute(
-       "DELETE FROM comments WHERE id = ? AND post_id = ?",
+      "DELETE FROM comments WHERE id = ? AND post_id = ?",
       [commentId, postId]
     );
 
-    if (!result.affectedRows) return res.status(404).json({ error: "Comment not found" });
+    if (!result.affectedRows)
+      return res.status(404).json({ error: "Comment not found" });
 
     res.json({ success: true });
   } catch (err) {
@@ -302,11 +336,11 @@ export const deleteCommentFromPost = async (req, res) => {
 //     res.status(500).json({ error: "Could not unlike post" });
 //   }
 // };
-
+// ------------------------- TOGGLE LIKE -------------------------
 export const toggleLike = async (req, res) => {
   const { postId } = req.params;
   const userId = req.user.id;
-  try { 
+  try {
     // Check if user already liked the post
     const [likes] = await db.execute(
       "SELECT * FROM post_likes WHERE post_id = ? AND user_id = ?",
@@ -330,10 +364,9 @@ export const toggleLike = async (req, res) => {
         "INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)",
         [postId, userId]
       );
-      await db.execute(
-        "UPDATE posts SET likes = likes + 1 WHERE id = ?",
-        [postId]
-      );
+      await db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [
+        postId,
+      ]);
       action = "liked";
     }
     res.json({ success: true, action });
@@ -341,4 +374,4 @@ export const toggleLike = async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Could not toggle like" });
   }
-}; 
+};

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../App.css";
 import "./Friends.css";
 
@@ -15,6 +16,8 @@ export default function Friends() {
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
+
+  const navigate = useNavigate();
 
   const authHeader = {
     Authorization: `Bearer ${token}`,
@@ -147,6 +150,7 @@ export default function Friends() {
                   }
                   alt={f.username}
                   className="friend-avatar"
+                  onClick={() => navigate(`/username/${f.username}`)}
                 />
                 <span>{f.username}</span>
                 <button onClick={() => removeFriend(f.username)}>Remove</button>

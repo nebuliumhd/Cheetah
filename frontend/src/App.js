@@ -11,7 +11,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Chat from "./Pages/Chat";
 import Profile from "./Pages/UserProfile";
-import VisitorProfile from "./Pages/VisitorProfile"
+import VisitorProfile from "./Pages/VisitorProfile";
 import LandingNav from "./Components/LandingNav";
 import PostPage from "./Pages/Post";
 import FeedPage from "./Pages/Feed";
@@ -33,8 +33,16 @@ function App() {
   const [isOpen, setOpen] = useState(false);
 
   const location = useLocation();
+  const isScrollablePage = [
+    "/feed",
+    "/posts",
+    "/friends",
+    "/profile",
+    "/username",
+    "/register",
+  ].some((path) => location.pathname.startsWith(path));
   const navigate = useNavigate();
-  const { user, isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout, loading } = useAuth();
 
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
@@ -50,6 +58,12 @@ function App() {
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
+
+  useEffect(() => {
+    if (!loading && isLoggedIn && location.pathname === "/landing") {
+      navigate("/profile", { replace: true });
+    }
+  }, [loading, isLoggedIn, location.pathname, navigate]);
 
   const hideNavbarOnPaths = ["/update", "/delete", "/register", "/login"];
   const shouldShowNavbar = !hideNavbarOnPaths.includes(location.pathname);
@@ -70,8 +84,25 @@ function App() {
     { label: "Chat", onClick: () => navigate("/chat") },
     { label: "Feed", onClick: () => navigate("/feed") },
     { label: "Posts", onClick: () => navigate("/posts") },
-    { label: "Settings", onClick: () => navigate("/profile") },
+    { label: "Profile", onClick: () => navigate("/profile") },
   ];
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: theme === "dark" ? "#1a1a2e" : "#f0f0f0",
+        }}
+      >
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
@@ -96,12 +127,22 @@ function App() {
                     alt={user.username}
                     className="profile-pic"
                     onClick={() => navigate(`/username/${user.username}`)}
-                    style={{cursor: "pointer"}}
+                    style={{ cursor: "pointer" }}
                     onError={(e) => {
                       e.target.src = `${API_BASE}/uploads/profiles/default-profile.jpg`;
                     }}
                   />
-                  <span className="greeting" style={{maxWidth: "25vw", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"}}>Hello, {user.username}!</span>
+                  <span
+                    className="greeting"
+                    style={{
+                      maxWidth: "25vw",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    Hello, {user.username}!
+                  </span>
                 </div>
 
                 {/* Center: Desktop navigation buttons */}
@@ -196,10 +237,13 @@ function App() {
         <div
           style={{
             flex: 1,
-            overflow: "auto",
             width: "100%",
             backgroundColor: theme === "dark" ? "#1a1a2e" : "#f0f0f0",
             transition: "background-color 0.3s ease",
+            overflow: isScrollablePage ? "auto" : "hidden",
+            minHeight: 0,
+            display: isScrollablePage ? "block" : "flex",
+            flexDirection: isScrollablePage ? undefined : "column",
           }}
         >
           <Routes>
@@ -216,7 +260,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/profile"
               element={
@@ -225,7 +268,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/posts"
               element={
@@ -234,7 +276,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/feed"
               element={
@@ -243,7 +284,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/friends"
               element={
@@ -252,14 +292,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            {/* <Route
-              path="/username/:username"
-              element={
-                <ProtectedRoute>
-                  <VisitorProfile />
-                </ProtectedRoute>
-              }
-            /> */}
+
             <Route path="*" element={<Navigate to="/landing" replace />} />
           </Routes>
         </div>

@@ -10,37 +10,88 @@ export const AuthProvider = ({ children }) => {
   
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
-  // Memoize logout to avoid dependency issues
   const logout = useCallback(() => {
     setUsername('');
     setUserId('');
     setProfilePicture(null);
     sessionStorage.clear();
-    localStorage.clear();
+    localStorage.removeItem('token');
   }, []);
+
+  // Validate token with backend
+  const validateToken = useCallback(async (token) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/verify`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        console.error('Token validation failed with status:', res.status);
+        return null;
+      }
+
+      const data = await res.json();
+      console.log('Token validation successful:', data);
+      
+      return {
+        id: data.userId,
+        username: data.username,
+        profile_picture: data.profile_picture
+      };
+    } catch (err) {
+      console.error('Token validation error:', err);
+      return null;
+    }
+  }, [API_BASE]);
 
   // Check authentication status on mount
   useEffect(() => {
-    const loadAuthFromStorage = () => {
+    const loadAuthFromStorage = async () => {
       const token = localStorage.getItem('token');
-      const storedUsername = sessionStorage.getItem('username');
-      const storedUserId = sessionStorage.getItem('userId');
-      const storedProfilePic = sessionStorage.getItem('profile_picture');
       
-      if (token && storedUsername && storedUserId) {
-        // Restore from session storage
-        setUsername(storedUsername);
-        setUserId(storedUserId);
-        setProfilePicture(storedProfilePic || null);
+      if (!token) {
+        console.log('No token found in localStorage');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Token found, validating...');
+      
+      // Validate token with backend
+      const user = await validateToken(token);
+      
+      if (user) {
+        // Token is valid, restore session
+        console.log('Setting user state:', user);
+        setUsername(user.username);
+        setUserId(user.id);
+        setProfilePicture(user.profile_picture || null);
+        
+        // Update session storage
+        sessionStorage.setItem('username', user.username);
+        sessionStorage.setItem('userId', user.id);
+        if (user.profile_picture) {
+          sessionStorage.setItem('profile_picture', user.profile_picture);
+        }
+      } else {
+        // Token is invalid, clear everything
+        console.log('Token invalid, clearing auth');
+        localStorage.removeItem('token');
+        sessionStorage.clear();
       }
       
       setLoading(false);
     };
 
     loadAuthFromStorage();
-  }, []);
+  }, [validateToken]);
 
   const login = (name, id, token, profilePic = null) => {
+    console.log('Login called with:', { name, id, profilePic });
     setUsername(name);
     setUserId(id);
     setProfilePicture(profilePic);
@@ -61,13 +112,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Derived values
   const isLoggedIn = Boolean(userId);
   const user = userId ? { 
     id: userId, 
     username,
     profile_picture: profilePicture 
   } : null;
+
+  console.log('Auth state:', { isLoggedIn, userId, username, loading });
 
   return (
     <AuthContext.Provider value={{ 
@@ -78,7 +130,8 @@ export const AuthProvider = ({ children }) => {
       login, 
       logout, 
       loading,
-      updateProfilePicture 
+      updateProfilePicture,
+      validateToken
     }}>
       {children}
     </AuthContext.Provider>

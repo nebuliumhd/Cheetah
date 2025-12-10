@@ -74,11 +74,12 @@ export default function CreatePostForm({ onPostCreated }) {
           onChange={(e) => setText(e.target.value)}
         />
 
-        <div style={{ marginBottom: "10px" }}>
+        <div style={{ marginTop: "10px", marginBottom: "10px" }}>
           <label>Visibility: </label>
           <select
             value={visibility}
             onChange={(e) => setVisibility(e.target.value)}
+            className="visibility-select"
           >
             <option value="everyone">Everyone</option>
             <option value="friends">Friends Only</option>
@@ -95,7 +96,7 @@ export default function CreatePostForm({ onPostCreated }) {
         )}
 
         <label className="file-label">
-          Add Images
+          Add Image
           <input
             type="file"
             multiple

@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
+import authRoutes from "./routes/auth-routes.js";
 import postRoutes from "./routes/post-routes.js";
 import userRoutes from "./routes/user-routes.js";
 import chatRoutes from "./routes/chat-routes.js";
@@ -50,6 +51,7 @@ app.use((req, res, next) => {
 // IMPORTANT: Serve uploads BEFORE other routes
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", authMiddleware, chatRoutes);
 app.use("/api/posts", authMiddleware, postRoutes);

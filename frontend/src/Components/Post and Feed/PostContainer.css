@@ -28,6 +28,11 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--border-color);
+  cursor: pointer;
+}
+
+.post-avatar:hover {
+  background-color: #5b6eae;
 }
 
 .post-user-info {
@@ -41,6 +46,9 @@
   margin: 0;
   color: var(--text-primary);
   line-height: 1.2;
+  max-width: 15ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .post-time {
@@ -86,7 +94,7 @@
   padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
-  color: var(--text-primary);
+  color: white;
   font-weight: 500;
 }
 
@@ -106,17 +114,21 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .comment-username {
   font-weight: bold;
   color: var(--text-primary);
+  overflow: hidden;
 }
 
 .comment-text {
   flex: 1;
   color: var(--text-primary);
   background-color: var(--bg-tertiary);
+  overflow-wrap: anywhere;
+  min-width: 30vw;
 }
 
 .comment-delete {
@@ -157,7 +169,7 @@
   border: none;
   padding: 5px 10px;
   border-radius: 5px;
-  color: var(--text-primary);
+  color: white;
   cursor: pointer;
   font-weight: 500;
 }
@@ -170,4 +182,62 @@
   text-align: center;
   color: var(--text-secondary);
   margin-top: 40px;
+}
+
+/* Read more button */
+.read-more-btn {
+  background: none;
+  border: none;
+  color: var(--button-primary-hover);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.read-more-btn:hover {
+  color: #5b6eae;
+  text-decoration: underline;
+}
+
+/* Edit container */
+.post-edit-container {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.post-edit-textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid var(--input-border);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+
+.edit-save, .edit-cancel {
+  background-color: var(--button-primary-hover);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+.edit-save:hover {
+  background-color: #5b6eae;
+}
+
+.edit-cancel {
+  background-color: #666;
+}
+
+.edit-cancel:hover {
+  background-color: #555;
 }

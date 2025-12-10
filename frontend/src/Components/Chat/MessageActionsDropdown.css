@@ -40,7 +40,9 @@
   box-shadow: 0 4px 12px var(--shadow);
   min-width: 160px;
   z-index: 1000;
-  overflow: hidden;
+  overflow: visible;
+  width: auto;
+  min-width: max-content;
   animation: dropdownFadeIn 0.15s ease;
 }
 
@@ -75,11 +77,11 @@
   width: 100%;
   padding: 10px 14px;
   border: none;
-  background: none;
   text-align: left;
   cursor: pointer;
   font-size: 14px;
   color: var(--text-primary);
+  background-color: var(--bg-tertiary);
   transition: background-color 0.15s ease;
 }
 
@@ -88,12 +90,11 @@
 }
 
 .action-item.edit:hover {
-  background-color: rgba(0, 132, 255, 0.1);
+  background-color: #0084FF;
 }
 
 .action-item.delete:hover {
-  background-color: rgba(240, 71, 71, 0.1);
-  color: #f04747;
+  background-color: #F04747;
 }
 
 /* Border between items */

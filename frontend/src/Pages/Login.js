@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import "./Login.css";
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
-  const { isLoggedIn, login } = useAuth();
+  const { isLoggedIn, login, loading } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     userName: "",
     passWord: "",
@@ -14,6 +15,23 @@ const Login = () => {
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
 
+  // Wait for loading to complete before redirecting
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  // Redirect to profile if already logged in
   if (isLoggedIn) {
     return <Navigate to="/profile" replace />;
   }
@@ -28,6 +46,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     try {
       const payload = {
@@ -47,10 +66,15 @@ const Login = () => {
         throw new Error(data.message || "Login failed.");
       }
 
+      // Store auth data
       login(data.user.username, data.user.id, data.token, data.user.profile_picture);
 
-      setSuccess("Login successful! Redirecting to your profile!");
-      // setTimeout(() => navigate("/landing"), 2000); Moved to App.js
+      setSuccess("Login successful! Redirecting...");
+      
+      // Navigate to profile after successful login
+      setTimeout(() => {
+        navigate("/profile");
+      }, 1000);
     } catch (err) {
       setError(err.message || "Login failed.");
     }

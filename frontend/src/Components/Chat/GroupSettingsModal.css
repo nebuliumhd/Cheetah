@@ -87,7 +87,6 @@
 .group-name-input {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid var(--input-border);
   border-radius: 6px;
   font-size: 14px;
   background-color: var(--input-bg);
@@ -144,7 +143,7 @@
 
 .group-name-edit-btn {
   padding: 4px 12px;
-  background-color: var(--hover-bg);
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
   border: none;
   border-radius: 6px;
@@ -198,6 +197,7 @@
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  cursor: pointer;
 }
 
 .participant-info {
@@ -319,7 +319,7 @@
 }
 
 .add-user-modal {
-  background-color: var(--card-bg);
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
   border-radius: 12px;
   width: 90%;
@@ -353,6 +353,7 @@
   padding: 8px 16px;
   background-color: var(--hover-bg);
   color: var(--text-primary);
+  background-color: #6C757D;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -367,6 +368,7 @@
 .add-user-modal-add-btn {
   padding: 8px 16px;
   color: white;
+  background-color: var(--button-primary-hover);
   border: none;
   border-radius: 6px;
   font-size: 14px;

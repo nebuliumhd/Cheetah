@@ -17,6 +17,11 @@ export default function MessageInput({ conversation, onMessageSent }) {
   const conversationId = conversation?.id;
   const otherUsername = conversation?.other_user_username;
 
+  const encodeTextToBytes = (text) => {
+    const encoder = new TextEncoder(); // UTF-8
+    return Array.from(encoder.encode(text));
+  };
+
   useEffect(() => {
     if (errorMessage) {
       setShowError(true);
@@ -187,7 +192,7 @@ export default function MessageInput({ conversation, onMessageSent }) {
             },
             body: JSON.stringify({
               conversationId,
-              message: messageText,
+              message: encodeTextToBytes(messageText),
               messageType: "text",
             }),
           });
@@ -263,7 +268,7 @@ export default function MessageInput({ conversation, onMessageSent }) {
             },
             body: JSON.stringify({
               recipientUsername: otherUsername,
-              message: messageText,
+              message: encodeTextToBytes(messageText),
               messageType: "text",
             }),
           });
@@ -300,7 +305,7 @@ export default function MessageInput({ conversation, onMessageSent }) {
       )}
 
       {(selectedImages.length > 0 || selectedVideos.length > 0) && (
-        <div className="preview-container">
+        <div className="chat-preview-container">
           {selectedImages.map((imageObj) => (
             <div key={imageObj.id} className="preview-item">
               <img

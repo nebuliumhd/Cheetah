@@ -31,7 +31,7 @@ export const searchForUsers = async (req, res) => {
        ORDER BY username ASC
        LIMIT 10`,
       [searchTerm]
-    );  
+    );
 
     const users = rows.map((u) => ({ value: u.username, label: u.username }));
     res.json({ users });
@@ -76,7 +76,7 @@ export const searchForFriends = async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to search for users" });
   }
-}
+};
 
 export const sendMessage = async (req, res) => {
   try {
@@ -547,15 +547,14 @@ export const startConversationByUsername = async (req, res) => {
       is_group: false,
     });
   } catch (err) {
-    
     if (err.code && err.sqlMessage) {
       // This is a DB-originating error
       console.log("DB error:", err.sqlMessage);
       return res.status(400).json({ error: err.sqlMessage });
     }
-    
+
     console.error("Error in startConversationByUsername:", err);
-    console.log(err)
+    console.log(err);
     return res
       .status(500)
       .json({ error: "Failed to start conversation for other user" });
@@ -623,11 +622,24 @@ export const sendMessageToUsername = async (req, res) => {
       conversationId = rows[0].id;
     }
 
+    let messageBuffer;
+    if (Buffer.isBuffer(message)) {
+      messageBuffer = message;
+    } else if (Array.isArray(message)) {
+      // Convert array of bytes to Buffer
+      messageBuffer = Buffer.from(message);
+    } else if (typeof message === "string") {
+      // Convert string to Buffer using UTF-8 encoding
+      messageBuffer = Buffer.from(message, "utf8");
+    } else {
+      return res.status(400).json({ error: "Invalid message format" });
+    }
+
     const [msgResult] = await db.query(
       `INSERT INTO messages
         (conversation_id, sender_id, ciphertext, nonce, message_type, created_at)
         VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
-      [conversationId, senderId, message, null, messageType]
+      [conversationId, senderId, messageBuffer, null, messageType]
     );
 
     return res.status(201).json({
@@ -833,6 +845,7 @@ export async function getMessagesByConversationId(req, res) {
         return {
           ...msg,
           is_read: isRead,
+          ciphertext: Array.from(msg.ciphertext),
         };
       });
 
@@ -909,6 +922,7 @@ export const getMessagesWithUsername = async (req, res) => {
       ...m,
       created_at: m.created_at ? new Date(m.created_at).toISOString() : null,
       read_at: m.read_at ? new Date(m.read_at).toISOString() : null,
+      ciphertext: Array.from(m.ciphertext),
     }));
 
     return res.json({ conversationId, messages: normalized });
@@ -1238,11 +1252,24 @@ export const sendMessageToGroup = async (req, res) => {
         .json({ error: "This is not a group conversation" });
     }
 
+    let messageBuffer;
+    if (Buffer.isBuffer(message)) {
+      messageBuffer = message;
+    } else if (Array.isArray(message)) {
+      // Convert array of bytes to Buffer
+      messageBuffer = Buffer.from(message);
+    } else if (typeof message === "string") {
+      // Convert string to Buffer using UTF-8 encoding
+      messageBuffer = Buffer.from(message, "utf8");
+    } else {
+      return res.status(400).json({ error: "Invalid message format" });
+    }
+
     const [msgResult] = await db.query(
       `INSERT INTO messages
         (conversation_id, sender_id, ciphertext, nonce, message_type, created_at)
         VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
-      [conversationId, senderId, message, null, messageType]
+      [conversationId, senderId, messageBuffer, null, messageType]
     );
 
     return res.status(201).json({

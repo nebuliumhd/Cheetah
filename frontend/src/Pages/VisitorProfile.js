@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
-import Post from "../Components/Post and Feed/PostContainer";
+import PostContainer from "../Components/Post and Feed/PostContainer";
 import "../App.css";
 import "./VisitorProfile.css";
+import { FunnelX } from "lucide-react";
 
 const VisitorProfile = () => {
   const { username } = useParams(); // Get username from URL
@@ -28,9 +29,12 @@ const VisitorProfile = () => {
         const token = localStorage.getItem("token");
 
         // Fetch user data
-        const userRes = await fetch(`${API_BASE}/api/users/username/${username}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const userRes = await fetch(
+          `${API_BASE}/api/users/username/${username}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (!userRes.ok) {
           throw new Error("User not found");
@@ -105,10 +109,10 @@ const VisitorProfile = () => {
           className="profile-avatar"
         />
         <h3 className="User-Name">{profileUser.username}</h3>
-        
-        {profileUser.bio && (
-          <p className="bio-text">{profileUser.bio}</p>
-        )}
+
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          {profileUser.bio && <p className="bio-text">{profileUser.bio}</p>}
+        </div>
 
         {isOwnProfile && (
           <button
@@ -127,7 +131,7 @@ const VisitorProfile = () => {
           <p>No posts yet</p>
         ) : (
           userPosts.map((post) => (
-            <Post
+            <PostContainer
               key={post.id}
               post={post}
               onPostDeleted={handlePostDeleted}

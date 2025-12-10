@@ -84,3 +84,9 @@
   background: #5ea2ff;
   cursor: not-allowed;
 }
+
+.visibility-select {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+  border: var(--border-color);
+}

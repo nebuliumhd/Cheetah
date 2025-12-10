@@ -180,19 +180,39 @@ export const loginUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { username, password } = req.body;
+    
+    // Get authenticated user info from JWT (set by authMiddleware)
+    const authenticatedUserId = req.user.id;
+    const authenticatedUsername = req.user.username;
 
-    const [users] = await db.query("SELECT * FROM users WHERE username = ?", [
-      username,
-    ]);
-    if (users.length === 0)
+    // Verify the entered username matches the authenticated user
+    if (username !== authenticatedUsername) {
+      return res.status(403).json({ 
+        message: "Username does not match your account. You can only delete your own account." 
+      });
+    }
+
+    // Fetch the user by both username and ID for extra security
+    const [users] = await db.query(
+      "SELECT * FROM users WHERE username = ? AND id = ?", 
+      [username, authenticatedUserId]
+    );
+    
+    if (users.length === 0) {
       return res.status(404).json({ message: "User not found." });
+    }
 
     const user = users[0];
+    
+    // Verify the password
     const isValid = await bcrypt.compare(password, user.password_hash);
-    if (!isValid)
+    if (!isValid) {
       return res.status(401).json({ message: "Incorrect password." });
+    }
 
-    await db.query("DELETE FROM users WHERE id = ?", [user.id]);
+    // Delete only the authenticated user's account
+    await db.query("DELETE FROM users WHERE id = ?", [authenticatedUserId]);
+    
     res.status(200).json({ message: "Account successfully deleted." });
   } catch (err) {
     console.error("Delete error:", err);
@@ -234,9 +254,34 @@ export const updateUser = async (req, res) => {
     }
 
     // Hash password if changed
-    const newPasswordHash = password
-      ? await bcrypt.hash(password, 12)
-      : user.password_hash;
+    const newPasswordHash = password;
+    if (password) {
+      if (password.length < 8)
+        return res
+          .status(400)
+          .json({ message: "Password must be at least 8 characters long" });
+        
+      if (!/[A-Z]/.test(password))
+        return res.status(400).json({
+          message: "Password must contain at least one uppercase letter",
+        });
+      if (!/[a-z]/.test(password))
+        return res.status(400).json({
+          message: "Password must contain at least one lowercase letter",
+        });
+      if (!/[0-9]/.test(password))
+        return res.status(400).json({
+          message: "Password must contain at least one number",
+        });
+      if (!/[^A-Za-z0-9]/.test(password))
+        return res.status(400).json({
+          message: "Password must contain at least one special character",
+        });
+
+      newPasswordHash = await bcrypt.hash(password, 12);
+    }
+      // ? await bcrypt.hash(password, 12)
+      // : user.password_hash;
 
     // Update only fields that were provided
     const updatedUser = {

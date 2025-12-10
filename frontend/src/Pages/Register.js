@@ -3,7 +3,7 @@ import { Link, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../App.css";
 import "./Register.css";
-import RequimentsList from "../Components/PasswordRequirement/PasswordRequirements.js";
+//import RequimentsList from "../Components/PasswordRequirement/PasswordRequirements.js";
 const RegisterUser = () => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();

@@ -18,6 +18,21 @@
   margin: 1em;
 }
 
+.Contact-Title {
+  margin-top: 5vh;
+  margin-bottom: 5vh;
+}
+
+.bio-component h3 {
+  margin-top: 5vh;
+  margin-bottom: 2.5vh;
+}
+
+.bio-component p {
+  margin-top: 2vh;
+  margin-bottom: 2vh;
+}
+
 .account-buttons {
   display: flex;
   flex-direction: row;
@@ -29,13 +44,13 @@
   background-color: var(--button-primary);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 1rem;
   margin: 10px;
   border-radius: 5px;
   cursor: pointer;
+  font-family: 'Fredoka', sans-serif;
   font-size: 18px;
   transition: background-color 0.3s ease, transform 0.2s ease;
-  min-width: 10rem;
 }
 
 .custom-button1:hover {

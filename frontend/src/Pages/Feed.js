@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../App.css";
 import "./Feed.css";
-import Post from "../Components/Post and Feed/PostContainer";
+import PostContainer from "../Components/Post and Feed/PostContainer";
 
 const FeedPage = () => {
   const [posts, setPosts] = useState([]);
@@ -45,13 +45,13 @@ const FeedPage = () => {
 
   return (
     <div className="feed-page">
-      <h2>Feed</h2>
+      <h1>Feed</h1>
 
       {posts.length === 0 ? (
         <p>No posts yet. Follow some friends to see their posts!</p>
       ) : (
         posts.map((post) => (
-          <Post
+          <PostContainer
             key={post.id}
             post={post}
             onPostUpdated={handlePostUpdated}

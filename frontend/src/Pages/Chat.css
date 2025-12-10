@@ -70,6 +70,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--border-color);
+  cursor: pointer;
 }
 
 .chat-header-icon {
@@ -86,6 +87,7 @@
   margin: 0;
   font-size: 18px;
   color: var(--text-primary);
+  text-transform: none;
 }
 
 .chat-header-members {
@@ -102,7 +104,7 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  color: var(--text-primary);
+  color: white;
   font-weight: 500;
 }
 
@@ -139,6 +141,7 @@
 @media (max-width: 768px) {
   .chat-page {
     position: relative;
+    height: 100%;
   }
 
   /* Show/hide sidebar on mobile */
@@ -191,6 +194,7 @@
 
   .chat-header-title {
     font-size: 16px;
+    text-transform: none;
   }
 
   .chat-settings-btn {
@@ -235,6 +239,7 @@
 
   .chat-header-title {
     font-size: 14px;
+    text-transform: none;
   }
 
   .chat-header-members {

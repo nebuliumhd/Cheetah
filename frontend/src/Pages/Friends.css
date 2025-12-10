@@ -45,7 +45,7 @@ h2 {
 
 .friend-item:hover,
 .friend-request-item:hover {
-  background-color: var(--hover-bg);
+  background-color: var(--bg-secondary);
 }
 
 /* Username text */
@@ -148,6 +148,7 @@ hr {
   object-fit: cover;
   border: 2px solid var(--border-color);
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 /* Sections with centered containers */

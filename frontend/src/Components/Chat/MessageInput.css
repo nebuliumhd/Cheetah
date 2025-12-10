@@ -20,14 +20,17 @@
 }
 
 /* Image & Video Preview Section */
-.preview-container {
+.chat-preview-container {
   padding: 10px;
   background-color: var(--hover-bg);
   border-bottom: 1px solid var(--border-color);
   display: flex;
+  flex-direction: row;
+  justify-content: center;
   gap: 10px;
   overflow-x: auto;
   align-items: center;
+  flex-wrap: nowrap;
 }
 
 .preview-item {
