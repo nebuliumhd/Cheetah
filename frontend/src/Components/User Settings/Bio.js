@@ -1,3 +1,42 @@
+/** ABSTRACT: Bio.js
+ *
+ *  DESCRIPTION:
+ *  Manages the display and editing of a user’s profile biography.
+ *  Initializes state for bio text, editing mode, loading, and error handling.
+ *  Communicates with the backend API to save updates via an authenticated PATCH request.
+ *  Provides a responsive UI to view, edit, and submit bio changes.
+ *
+ *  RESPONSIBILITIES:
+ *  - Display the current bio or a placeholder if none exists.
+ *  - Allow the user to edit their bio text in a textarea.
+ *  - Handle API requests to save updated bio information.
+ *  - Manage UI states: editing, loading, and error messages.
+ *  - Sync internal state when the parent updates the `currentBio` prop.
+ *
+ *  FUNCTIONS:
+ *  - Bio({ currentBio }):
+ *      Main component function managing state and rendering the bio UI.
+ *
+ *  - saveBio():
+ *      Sends the updated bio to the backend API using a PATCH request.
+ *      Updates the UI state based on success or failure.
+ *
+ *  HOOKS / STATE:
+ *  - useState(bio, editing, loading, error)
+ *      Tracks the bio text, editing mode, API loading status, and any error messages.
+ *
+ *  - useEffect():
+ *      Syncs the internal bio state when `currentBio` prop changes.
+ *
+ *  ASSUMPTIONS:
+ *  - The user is authenticated with a valid token stored in localStorage.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState, useEffect } from "react";
 
 export default function Bio({ currentBio }) {

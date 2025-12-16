@@ -1,3 +1,28 @@
+/** ABSTRACT: Post.js
+ *  
+ *  DESCRIPTION:
+ *  Defines the main posts management page for the logged-in user.
+ *  Allows users to create new posts and view, update, or delete
+ *  their existing posts.
+ * 
+ *  RESPONSIBILITIES:
+ *  - Fetch and display all posts created by the currently authenticated user.
+ *  - Provide a form for creating new posts.
+ *  - Refresh the post list when posts are created, updated, or deleted.
+ *  - Handle empty-state UI when the user has no posts.
+ *
+ *  FUNCTIONS:
+ *  - Post(): Main component responsible for rendering the user’s post page
+ *    and managing post state.
+ *  - loadMyPosts(): Sends an authenticated request to retrieve the user’s
+ *    posts from the backend and updates local state.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ * 
+ *  END ABSTRACT
+ **/
+
 import { useEffect, useState } from "react";
 import PostContainer from "../Components/Post and Feed/PostContainer.js";
 import CreatePostForm from "../Components/Post and Feed/CreatePostForm.js";

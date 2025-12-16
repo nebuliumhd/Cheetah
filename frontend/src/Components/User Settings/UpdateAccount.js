@@ -1,3 +1,34 @@
+/** ABSTRACT: UpdateAccount.js
+ *
+ *  DESCRIPTION:
+ *  Provides an animated collapsible form for authenticated users to update
+ *  their account information, including personal details and login credentials.
+ *  Manages form state, handles validation, communicates securely with the backend
+ *  via PATCH requests, and provides responsive success/error feedback. Logs out
+ *  the user automatically if the password is changed.
+ *
+ *  RESPONSIBILITIES:
+ *  - Initialize form fields with the current user's account data.
+ *  - Toggle the update form visibility with animated transitions.
+ *  - Validate password and confirmPassword fields before submission.
+ *  - Send updated account information to the backend with authentication.
+ *  - Display success and error messages based on API response.
+ *  - Automatically log out and redirect the user if the password is updated.
+ *
+ *  STATE & HOOKS:
+ *  - useState: showForm, formData, error, success
+ *  - useAuth(): Access userId, user object, and logout function
+ *
+ *  FUNCTIONS:
+ *  - handleChange(e): Updates local form state on input change.
+ *  - handleUpdate(e): Validates input, sends PATCH request, handles success/error, logs out if password changed.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';

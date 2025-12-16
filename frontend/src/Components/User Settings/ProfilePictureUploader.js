@@ -1,3 +1,44 @@
+/** ABSTRACT: ProfilePictureUploader.js
+ *
+ *  DESCRIPTION:
+ *  Provides a modal interface for selecting, previewing, validating, and uploading
+ *  a new profile picture. Manages state for file selection, preview generation,
+ *  modal visibility, upload progress, and error handling. Validates file type
+ *  and size, generates a temporary preview, and sends the image to the backend
+ *  using an authenticated PATCH request via FormData. After a successful upload,
+ *  the parent component is notified and the modal closes with a fade-out animation.
+ *
+ *  RESPONSIBILITIES:
+ *  - Display a modal with fade-in/fade-out animation and overlay click handling.
+ *  - Allow users to select image files through a hidden file input.
+ *  - Validate selected files: must be image type and ≤5MB.
+ *  - Generate a temporary preview of the selected image.
+ *  - Upload the image via authenticated PATCH request.
+ *  - Handle and display loading and error states.
+ *  - Notify parent on successful upload and close the modal.
+ *
+ *  STATE & HOOKS:
+ *  - useState: selectedFile, preview, error, isUploading, showModal
+ *  - useRef: fileInputRef
+ *  - useEffect: synchronize showModal with isOpen prop
+ *
+ *  FUNCTIONS:
+ *  - handleClose(): Closes modal with fade-out animation.
+ *  - handleFileSelect(e): Validates file and generates preview.
+ *  - handleUpload(): Uploads the selected file and updates parent state.
+ *
+ *  PROPS:
+ *  - isOpen: boolean, modal visibility
+ *  - onClose: function, callback when modal closes
+ *  - currentProfile: string, current profile picture path
+ *  - onUploadSuccess: function, callback with new profile picture path after upload
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState, useRef, useEffect } from "react";
 import "./ProfilePictureUploader.css"; // add modal/fade styling
 

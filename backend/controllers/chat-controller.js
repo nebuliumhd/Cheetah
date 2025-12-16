@@ -1,3 +1,93 @@
+/** ABSTRACT: chat-controller.js
+ *
+ *  DESCRIPTION:
+ *  This module provides server-side functionality for handling messaging
+ *  operations, including direct user-to-user messaging and group chats.
+ *
+ *  RESPONSIBILITIES:
+ *  - Handle user search, messaging, conversations, and group chat management.
+ *  - Enforce permissions, ownership, and input validation.
+ *  - Interact with the database and filesystem for message data and media.
+ *
+ *  FUNCTIONS:
+ *  - findUserByUsername(username):
+ *    Finds a user by username.
+ *
+ *  - searchForUsers(req, res):
+ *    Searches all users by username.
+ *
+ *  - searchForFriends(req, res):
+ *    Searches accepted friends by username.
+ *
+ *  - sendMessage(req, res):
+ *    Sends a message using user IDs.
+ *
+ *  - editMessage(req, res):
+ *    Edits a user’s text message.
+ *
+ *  - deleteMessage(req, res):
+ *    Deletes a user’s message and related media.
+ *
+ *  - getConversations(req, res):
+ *    Retrieves all conversations for the user.
+ *
+ *  - markMessageAsRead(req, res):
+ *    Marks a message as read.
+ *
+ *  - startConversationByUsername(req, res):
+ *    Starts or retrieves a 1:1 conversation.
+ *
+ *  - sendMessageToUsername(req, res):
+ *    Sends a message to a user by username.
+ *
+ *  - sendVideoToUsername(req, res):
+ *    Sends a video message to a user.
+ *
+ *  - getMessagesByConversationId(req, res):
+ *    Retrieves messages for a conversation.
+ *
+ *  - getMessagesWithUsername(req, res):
+ *    Retrieves messages with a specific user.
+ *
+ *  - deleteConversation(req, res):
+ *    Deletes a conversation and its media.
+ *
+ *  - sendImageToUsername(req, res):
+ *    Sends an image message to a user.
+ *
+ *  - createGroupChat(req, res):
+ *    Creates a new group chat.
+ *
+ *  - getGroupParticipants(req, res):
+ *    Retrieves group participants.
+ *
+ *  - sendMessageToGroup(req, res):
+ *    Sends a message to a group.
+ *
+ *  - sendVideoToGroup(req, res):
+ *    Sends a video message to a group.
+ *
+ *  - addParticipantsToGroup(req, res):
+ *    Adds users to a group chat.
+ *
+ *  - sendImageToGroup(req, res):
+ *    Sends an image message to a group.
+ *
+ *  - removeParticipantFromGroup(req, res):
+ *    Removes a user from a group.
+ *
+ *  - leaveGroup(req, res):
+ *    Allows a user to leave a group.
+ *
+ *  - updateGroupName(req, res):
+ *    Updates a group’s name.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *
+ *  END ABSTRACT
+ **/
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

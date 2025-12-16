@@ -1,3 +1,44 @@
+/** ABSTRACT: Chat.js
+ *
+ *  DESCRIPTION:
+ *  Serves as the main layout and controller for the chat interface.
+ *  Manages the selected conversation, retrieves conversation metadata,
+ *  and renders the conversation list, chat window, and message input.
+ *  Handles refresh triggers and responsive layout behavior.
+ *
+ *  RESPONSIBILITIES:
+ *  - Maintain and update the selected conversation state.
+ *  - Trigger message refresh updates after sending messages.
+ *  - Render the sidebar, chat header, message window, and input area.
+ *  - Display profile pictures and participant counts for conversations.
+ *  - Handle responsive layout behavior for mobile and desktop views.
+ *  - Control group-related UI elements such as the group settings modal.
+ *
+ *  FUNCTIONS:
+ *  - Chat(): Main component that manages chat state, layout, and data flow.
+ *  - loadConversations(): Fetches the user’s conversations from the backend
+ *    and updates local state. (defined inside useEffect)
+ *  - handleMessageSent(): Triggers a refresh of messages after a new message
+ *    is successfully sent.
+ *  - handleGroupNameUpdated(newGroupName): Forces a refresh after a group
+ *    name change.
+ *  - handleParticipantsChanged(newCount): Forces a refresh when group
+ *    participants change.
+ *  - handleSelectConversation(conversation): Sets the active conversation
+ *    and updates UI state.
+ *  - handleBackToList(): Shows the conversation list on smaller screens.
+ *  - getConversationPfp(conversation): Returns the correct profile picture
+ *    URL for one-on-one conversations.
+ *  - getMemberCount(conversation): Returns the number of participants in a
+ *    group conversation.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConversationList from "../Components/Chat/ConversationList";

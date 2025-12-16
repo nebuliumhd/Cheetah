@@ -1,3 +1,36 @@
+/** ABSTRACT: AuthContext.js
+ *  
+ *  DESCRIPTION:
+ *  Provides a React context for managing authentication state across the application.
+ *  Handles token validation, login/logout behavior, and persistence of user data.
+ *  Exposes authentication state and helper functions to all child components.
+ * 
+ *  RESPONSIBILITIES:
+ *  - Store and manage user identity and authentication state.
+ *  - Validate stored authentication tokens with the backend.
+ *  - Persist and restore authentication data using browser storage.
+ *  - Provide login and logout functionality.
+ *  - Expose authentication helpers through a custom hook.
+ * 
+ *  FUNCTIONS:
+ *  - AuthProvider(children): Wraps the application and supplies authentication
+ *    state and helper functions via context.
+ *  - login(name, id, token, profilePic): Stores user credentials and authentication
+ *    token after a successful login.
+ *  - logout(): Clears authentication state and removes stored tokens.
+ *  - validateToken(token): Verifies a JWT with the backend and returns user data
+ *    if valid.
+ *  - updateProfilePicture(newPath): Updates the stored profile picture path
+ *    in state and session storage.
+ *  - useAuth(): Custom hook that provides access to authentication context values.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *  PROGRAMMER: Aabaan Samad
+ * 
+ *  END ABSTRACT
+ **/
+
 import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 
 const AuthContext = createContext();

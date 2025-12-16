@@ -1,3 +1,30 @@
+/** ABSTRACT: upload-middleware.js
+ *
+ *  DESCRIPTION:
+ *  Provides middleware functions for handling file uploads
+ *  in an Express application using Multer. Supports single image
+ *  uploads, multiple post attachments, and profile picture uploads,
+ *  enforcing file type and size restrictions while managing storage paths.
+ *
+ *  RESPONSIBILITIES:
+ *  - Save uploaded images and videos to designated directories
+ *  - Generate unique filenames to avoid collisions.
+ *  - Enforce maximum file size limits (5MB for images, 10MB for videos).
+ *  - Validate that uploaded files are valid types (images or videos).
+ *  - Return descriptive error responses for invalid uploads.
+ *
+ *  FUNCTIONS:
+ *  - uploadImage(req, res, next): Middleware for single image upload.
+ *  - uploadVideo(req, res, next): Middleware for single video upload.
+ *  - uploadPostImages(req, res, next): Middleware for multiple post image attachments (max 10).
+ *  - uploadProfilePicture(req, res, next): Middleware for updating user profile pictures.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *
+ *  END ABSTRACT
+ **/
+
 import multer from "multer";
 import fs from "fs";
 import path from "path";

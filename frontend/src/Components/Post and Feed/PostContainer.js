@@ -1,3 +1,71 @@
+/** ABSTRACT: PostContainer.js
+ *
+ *  DESCRIPTION:
+ *  Renders an individual post with user profile info, text, attachments, likes, 
+ *  and comments. Manages all interactive behaviors for a single post, including 
+ *  liking/unliking, adding/deleting comments, editing/deleting posts, and updating 
+ *  the UI based on backend responses.
+ *
+ *  RESPONSIBILITIES:
+ *  - Render post content: user info, text, attachments, and timestamps.
+ *  - Handle liking/unliking with live UI updates and backend calls.
+ *  - Manage comment creation, deletion, and UI updates.
+ *  - Allow post owners to edit or delete their posts.
+ *  - Communicate with backend API endpoints for all post actions.
+ *  - Safely handle null/undefined post fields with defaults.
+ *  - Support "Read more/Read less" for long posts.
+ *
+ *  FUNCTIONS:
+ *  - PostContainer(props):
+ *      Main component function; manages state, renders UI, handles user interactions.
+ *
+ *  - toggleLike():
+ *      Toggles the like status for the current user, updates the likes count locally,
+ *      and calls the backend to persist the like/unlike action.
+ *
+ *  - submitComment():
+ *      Sends a new comment to the backend, updates local comment state, and triggers 
+ *      onPostUpdated callback.
+ *
+ *  - deleteComment(commentId):
+ *      Deletes a comment from the backend, updates local comment state, and triggers 
+ *      onPostUpdated callback.
+ *
+ *  - deletePost():
+ *      Deletes the current post from the backend and calls onPostDeleted callback 
+ *      to remove it from the UI.
+ *
+ *  - startEdit():
+ *      Enables editing mode for the post text.
+ *
+ *  - cancelEdit():
+ *      Cancels editing mode and restores original post text.
+ *
+ *  - saveEdit():
+ *      Submits edited post text to the backend and updates local UI state.
+ *
+ *  - formatTime(dateString):
+ *      Converts a timestamp into a "time ago" string for display (e.g., 5m ago).
+ *
+ *  - renderPostText():
+ *      Renders post text with support for editing and "Read more/Read less" 
+ *      functionality for long posts.
+ *
+ *  HOOKS / STATE:
+ *  - useState(likes, userLiked, comments, commentText, isEditing, caption, isExpanded)
+ *      Manages likes, comment list, comment input, edit state, edited text, and 
+ *      text expansion.
+ *
+ *  ASSUMPTIONS:
+ *  - The user is authenticated with a valid token stored in localStorage.
+ *  - The parent component provides onPostUpdated and onPostDeleted callbacks.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../App.css";

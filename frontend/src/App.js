@@ -1,3 +1,36 @@
+/** ABSTRACT: App.js
+ *
+ *  DESCRIPTION:
+ *  Serves as the main router and navigation controller for the React application.
+ *  Manages global routing, authentication-protected pages, layout rendering,
+ *  dynamic navbar display, theme toggling, and session changes. Handles profile
+ *  picture URL resolution and ensures proper redirect behavior for unauthenticated
+ *  or logged-in users.
+ *
+ *  RESPONSIBILITIES:
+ *  - Configure all React Router routes (public and protected).
+ *  - Integrate AuthContext to determine login state and retrieve user data.
+ *  - Display a dynamic navbar showing user info when logged in.
+ *  - Hide the navbar on specified routes (login, register, update, etc.).
+ *  - Redirect unknown paths to the landing page.
+ *  - Handle logout behavior and route redirection.
+ *  - Generate correct profile picture URLs with fallback.
+ *  - Manage light/dark theme and store preference in localStorage.
+ *  - Control page scrolling behavior based on route type.
+ *
+ *  FUNCTIONS:
+ *  - App(): Main component managing theme, navigation, and route rendering.
+ *  - toggleTheme(): Toggles between light and dark themes and updates localStorage.
+ *  - handleLogout(): Logs out the user and navigates to the login page.
+ *  - profilePicUrl (useMemo): Computes the URL for the current user's profile picture.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import {
   Routes,
   Route,

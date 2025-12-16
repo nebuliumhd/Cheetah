@@ -1,3 +1,35 @@
+/** ABSTRACT: DeleteAccount.js
+ *
+ *  DESCRIPTION:
+ *  Provides a secure user interface for account deletion. Users must confirm
+ *  their username and password before the account is deleted. Integrates with
+ *  the authentication context to handle logout and redirection after deletion.
+ *
+ *  RESPONSIBILITIES:
+ *  - Render a toggleable delete account form with animated transitions.
+ *  - Collect and validate username and password inputs.
+ *  - Send a DELETE request to the backend to remove the user account.
+ *  - Display success or error messages based on API responses.
+ *  - Logout the user and redirect to the registration page after deletion.
+ *
+ *  FUNCTIONS:
+ *  - handleChange(e): Updates form data state when the user types into inputs.
+ *  - handleDelete(e): Sends the DELETE request to the backend and handles
+ *                     success/error messages, logout, and redirection.
+ *
+ *  HOOKS / STATE:
+ *  - useState for form visibility, formData, error, and success messages.
+ *  - useAuth to access logout function.
+ *
+ *  THIRD-PARTY:
+ *  - framer-motion (AnimatePresence and motion) for smooth form animations.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';

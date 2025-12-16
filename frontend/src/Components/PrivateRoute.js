@@ -1,3 +1,26 @@
+/** ABSTRACT: PrivateRoute.js
+ *
+ *  DESCRIPTION:
+ *  Provides a protected route wrapper that restricts access to authenticated users.
+ *  Redirects unauthenticated users to the login page and renders child components
+ *  only after authentication status is verified.
+ *
+ *  RESPONSIBILITIES:
+ *  - Verify authentication state using AuthContext.
+ *  - Display a loading state while authentication is being checked.
+ *  - Redirect unauthenticated users to the login page.
+ *  - Render protected child components when authenticated.
+ *
+ *  FUNCTIONS:
+ *  - PrivateRoute(children): Conditionally renders children or redirects
+ *    based on authentication and loading state.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 

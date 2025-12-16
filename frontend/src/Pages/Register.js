@@ -1,3 +1,33 @@
+/** ABSTRACT: Register.js
+ *  
+ *  DESCRIPTION:
+ *  Defines the user registration page component.
+ *  Handles input collection, validation, and API communication
+ *  to create a new user account.
+ * 
+ *  RESPONSIBILITIES:
+ *  - Collect user registration data through a controlled form.
+ *  - Validate password confirmation before submission.
+ *  - Send registration data to the backend API.
+ *  - Display success or error messages.
+ *  - Redirect users after successful registration.
+ *  - Prevent logged-in users from accessing the registration page.
+ * 
+ *  FUNCTIONS:
+ *  - RegisterUser(): Main registration component that manages form state,
+ *    validation, and navigation logic.
+ *  - handleChange(e): Updates form state when input fields change.
+ *  - handleSubmit(e): Validates input and sends a registration request
+ *    to the backend API.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *  PROGRAMMER: Aabaan Samad
+ * 
+ *  END ABSTRACT
+ **/
+
+
 import { useState } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";

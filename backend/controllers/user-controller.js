@@ -1,3 +1,76 @@
+/** ABSTRACT: user-controller.js
+ *  
+ *  DESCRIPTION:
+ *  Manages all user-related operations, including registration, authentication, 
+ *  profile updates, and account management. Handles database interactions, 
+ *  password encryption, and JWT-based authentication.
+ * 
+ *  RESPONSIBILITIES:
+ *  - Register and authenticate users.
+ *  - Update and delete user accounts securely.
+ *  - Retrieve user profiles and user lists.
+ *  - Manage profile pictures, bios, and friendships.
+ * 
+ *  FUNCTIONS:
+ *  - registerUser(req, res):
+ *    Registers a new user with validation and password hashing.
+ * 
+ *  - loginUser(req, res):
+ *    Authenticates a user and returns a JWT token.
+ * 
+ *  - deleteUser(req, res):
+ *    Deletes the authenticated user’s account after verification.
+ * 
+ *  - updateUser(req, res):
+ *    Updates user profile information and password.
+ * 
+ *  - getUserByUsername(req, res):
+ *    Retrieves a user’s public profile by username.
+ * 
+ *  - getAllUsers(req, res):
+ *    Retrieves all users from the database.
+ * 
+ *  - updatePFP(req, res):
+ *    Updates the authenticated user’s profile picture.
+ * 
+ *  - getFriends(req, res):
+ *    Retrieves the authenticated user’s friends list.
+ * 
+ *  - sendFriendRequest(req, res):
+ *    Sends a friend request to another user.
+ * 
+ *  - acceptFriendRequest(req, res):
+ *    Accepts an incoming friend request.
+ * 
+ *  - declineFriendRequest(req, res):
+ *    Declines an incoming friend request.
+ * 
+ *  - removeFriend(req, res):
+ *    Removes an existing friend.
+ * 
+ *  - recieveFriendRequest(req, res):
+ *    Retrieves incoming friend requests.
+ * 
+ *  - pendingFriendRequest(req, res):
+ *    Retrieves outgoing friend requests.
+ * 
+ *  - updateBio(req, res):
+ *    Updates the authenticated user’s bio.
+ * 
+ *  - getUserProfile(req, res):
+ *    Retrieves a user’s profile by username.
+ * 
+ *  ASSUMPTIONS:
+ *  - Users are authenticated where required via JWT middleware.
+ *  - Users may only modify their own account data.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland  
+ *  PROGRAMMER: Aabaan Samad  
+ * 
+ *  END ABSTRACT
+ **/
+
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "../db.js";

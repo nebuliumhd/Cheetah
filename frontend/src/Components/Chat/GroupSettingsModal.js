@@ -1,3 +1,68 @@
+/** ABSTRACT: GroupSettingsModal.js
+ *  
+ *  DESCRIPTION:
+ *  Defines a modal component for managing group chat settings.
+ *  Allows the group creator to view and modify participants, update the group name,
+ *  and add or remove users from the group. Integrates with backend API endpoints
+ *  to fetch and update group data in real time.
+ *
+ *  RESPONSIBILITIES:
+ *  - Display group participants in a scrollable modal.
+ *  - Allow creator to update the group name.
+ *  - Add or remove users from the group.
+ *  - Notify parent components when participants change or group name updates.
+ *  - Handle API communication, error handling, and loading states.
+ *  - Navigate to user profiles by clicking avatars.
+ *  - Manage UI state for modals, editing, and selections.
+ *
+ *  FUNCTIONS:
+ *  - GroupSettingsModal(props):
+ *      Main component function, manages modal rendering and state.
+ *
+ *  - loadParticipants():
+ *      Fetches the group's participant list from the backend.
+ *      Updates local state and debounces notification to parent via onParticipantsChanged.
+ *
+ *  - handleRemoveParticipant(username):
+ *      Removes a participant from the group after user confirmation.
+ *      Updates state optimistically and reloads participants on error.
+ *
+ *  - handleUpdateGroupName():
+ *      Updates the group name via API if it has changed.
+ *      Notifies parent component on successful update.
+ *
+ *  - loadOptions(inputValue):
+ *      Searches for users to add to the group, filtering out current participants.
+ *
+ *  - handleAddUser():
+ *      Adds the selected user to the group via backend API.
+ *      Closes add-user modal and reloads participants.
+ *
+ *  - useEffect(() => loadParticipants(), [loadParticipants]):
+ *      Loads participants when component mounts and clears any timeouts on unmount.
+ *
+ *  - useRef(participantUpdateTimeoutRef):
+ *      Stores timeout reference for debouncing participant count updates to parent.
+ *
+ *  - isCreator:
+ *      Boolean flag to determine if current user is the group creator.
+ *
+ *  - convListStyles:
+ *      Custom styles object for AsyncSelect component.
+ *
+ *  ASSUMPTIONS:
+ *  - The user is authenticated with a valid token in localStorage.
+ *  - Only the group creator can modify group settings.
+ *  - Backend API endpoints exist and follow expected request/response formats.
+ *  - Profile pictures are stored at predictable paths; default images exist.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *
+ *  END ABSTRACT
+ **/
+
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AsyncSelect from "react-select/async";

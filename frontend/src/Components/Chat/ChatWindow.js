@@ -1,3 +1,103 @@
+/** ABSTRACT: ChatWindow.js
+ *  
+ *  DESCRIPTION:
+ *  Displays the chat messages between the current user and a selected conversation partner.  
+ *  Handles fetching, displaying, and updating messages, including read/unread status, 
+ *  supports text, image, and video messages with delivery/read indicators, and continuous polling for 
+ *  new messages.
+ *
+ *  RESPONSIBILITIES:
+ *  - Fetch and render messages for the selected conversation.  
+ *  - Parse and display text, image, and video messages appropriately.  
+ *  - Mark messages as read when they become visible in the viewport.  
+ *  - Auto-scroll to the latest message and manage unread message indicators.  
+ *  - Periodically refresh messages and handle visibility change events.  
+ *  - Format timestamps, message clusters, and date separators.  
+ *  - Support message editing and deletion for messages sent by the current user.  
+ *  - Provide an image lightbox with zoom and drag functionality.
+ * 
+ *  FUNCTIONS:
+ *  - openLightbox(img):
+ *    Opens the image lightbox modal and initializes animation state for viewing an image.
+ * 
+ *  - closeLightbox():
+ *    Closes the image lightbox and resets zoom, drag offset, and mounted state.
+ * 
+ *  - handleWheel(event):
+ *    Handles mouse wheel input to zoom in and out of the lightbox image.
+ * 
+ *  - handleMouseDown(event):
+ *    Initializes drag tracking for moving a zoomed image within the lightbox.
+ * 
+ *  - handleMouseMove(event):
+ *    Updates the image offset while dragging to allow panning of the zoomed image.
+ * 
+ *  - handleMouseUp():
+ *    Ends image dragging behavior and resets drag state.
+ * 
+ *  - handleMouseLeave():
+ *    Cancels dragging when the cursor leaves the image area.
+ * 
+ *  - parseMessage(message):
+ *    Safely decodes message content from strings, binary arrays, or buffer objects.
+ * 
+ *  - formatTimestamp(timestamp):
+ *    Formats timestamps for delivery/read indicators using relative time or calendar dates.
+ * 
+ *  - formatMessageTime(timestamp):
+ *    Formats message timestamps for display under individual message bubbles.
+ * 
+ *  - formatDateSeparator(timestamp):
+ *    Formats and labels date separators (Today, Yesterday, or full date) between messages.
+ * 
+ *  - isSameDay(ts1, ts2):
+ *    Determines whether two timestamps fall on the same calendar day.
+ * 
+ *  - isInSameCluster(ts1, ts2):
+ *    Determines whether two messages belong to the same time cluster.
+ * 
+ *  - scrollToBottom(instant):
+ *    Scrolls the chat window to the latest message, optionally disabling animation.
+ * 
+ *  - isUserNearBottom():
+ *    Checks whether the user is currently scrolled near the bottom of the chat window.
+ * 
+ *  - markMessageAsRead(messageId):
+ *    Sends a request to mark a message as read and updates local message state.
+ * 
+ *  - handleEditMessage(message):
+ *    Enables edit mode for a selected message and focuses the edit input.
+ * 
+ *  - handleCancelEdit():
+ *    Cancels message editing and clears edit state.
+ * 
+ *  - handleSaveEdit(messageId):
+ *    Submits an edited message to the backend and updates the displayed message.
+ * 
+ *  - handleDeleteMessage(message):
+ *    Confirms and deletes a message from the conversation.
+ * 
+ *  - loadOlderMessages():
+ *    Fetches older messages when the user scrolls upward and preserves scroll position.
+ * 
+ *  - pollForNewMessages():
+ *    Periodically fetches new messages for the active conversation and updates the UI.
+ * 
+ *  - handleScroll():
+ *    Debounced scroll handler that triggers loading older messages when near the top.
+ * 
+ *  ASSUMPTIONS:
+ *  - The user is authenticated and authorized to view the selected conversation.
+ *  - Backend endpoints return messages ordered by creation time.
+ *  - Message IDs are monotonically increasing per conversation.
+ *  - Images and videos are stored and served via valid backend URLs.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland 
+ * 
+ *  END ABSTRACT
+ **/
+
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import MessageActionsDropdown from "./MessageActionsDropdown";

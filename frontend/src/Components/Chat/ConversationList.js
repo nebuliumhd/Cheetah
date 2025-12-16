@@ -1,3 +1,40 @@
+/** ABSTRACT: ConversationList.js
+ *  
+ *  DESCRIPTION:
+ *  Manages and renders the list of user conversations in a chat interface.  
+ *  Provides functionality for starting 1:1 conversations, creating group chats, 
+ *  and deleting conversations while integrating with backend API endpoints.  
+ *  Utilizes AsyncSelect for user search and supports mobile-responsive UI behavior.
+ *
+ *  RESPONSIBILITIES:
+ *  - Fetch and display existing conversations for the authenticated user.
+ *  - Provide search functionality to find users and start new conversations.
+ *  - Create group chats with multiple participants.
+ *  - Delete conversations and notify the backend to remove associated messages and images.
+ *  - Handle error states, loading indicators, and user feedback.
+ *  - Notify parent components when a conversation is selected or updated.
+ *  - Render UI elements for 1:1 and group conversations, including profile pictures.
+ *
+ *  FUNCTIONS:
+ *  - loadConversations: Fetches the user's conversations from the backend API.
+ *  - loadOptions: Searches for users based on input for starting new conversations or group chats.
+ *  - startConversation: Initiates a new 1:1 conversation with a selected user and updates state.
+ *  - createGroupChat: Creates a new group chat with a name and selected members.
+ *  - deleteConversation: Deletes a conversation and its associated messages/images.
+ *  - handleConversationSelect: Handles conversation selection and notifies parent components.
+ *
+ *  ASSUMPTIONS:
+ *  - The user is authenticated and has a valid token stored in localStorage.
+ *  - Backend API endpoints exist and follow expected request/response formats.
+ *  - Profile pictures are stored at a predictable path and a default image is available.
+ *  - Component may receive `conversations` and `isSidebarOpen` as props; if not, manages them via state.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *
+ *  END ABSTRACT
+ **/
+
 import { useEffect, useState, memo } from "react";
 import { createPortal } from "react-dom";
 import AsyncSelect from "react-select/async";

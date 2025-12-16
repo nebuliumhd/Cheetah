@@ -1,3 +1,40 @@
+/** ABSTRACT: Friends.js
+ *
+ *  DESCRIPTION:
+ *  The Friends.js component manages the full client-side interface for the
+ *  application's friend system. It retrieves and displays the user’s friends,
+ *  incoming friend requests, and outgoing requests, while also providing UI
+ *  controls to add friends, accept or decline requests, cancel pending
+ *  requests, and remove existing friends. The component communicates with the
+ *  backend through authenticated API calls and updates its state accordingly,
+ *  ensuring that all friend-related data remains synchronized and responsive
+ *  to user actions.
+ *
+ *  RESPONSIBILITIES:
+ *  - Fetch and display friend lists, incoming requests, and outgoing requests.
+ *  - Allow users to send friend requests by username.
+ *  - Accept, decline, or cancel friend requests.
+ *  - Remove existing friends.
+ *  - Maintain local component state for loading, errors, and form input.
+ *  - Refresh all friend-related data after any action that changes state.
+ *  - Display user profile pictures or a fallback default.
+ *
+ *  FUNCTIONS:
+ *  - Friends(): Main component that controls the friends page UI and logic.
+ *  - loadData(): Fetches friends, incoming requests, and outgoing requests
+ *    from the backend and updates component state.
+ *  - sendFriendRequest(): Sends a new friend request to a specified username.
+ *  - acceptFriend(username): Accepts an incoming friend request.
+ *  - declineFriend(username): Declines an incoming friend request.
+ *  - removeFriend(username): Removes an existing friend.
+ *  - cancelRequest(username): Cancels an outgoing friend request.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";

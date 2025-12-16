@@ -1,3 +1,59 @@
+/** ABSTRACT: post-controller.js
+ *
+ *  DESCRIPTION:
+ *  This file defines backend controller functions for creating, retrieving,
+ *  updating, and deleting posts. It manages post visibility, attachments,
+ *  comments, and likes while enforcing ownership and access rules.
+ *
+ *  RESPONSIBILITIES:
+ *  - Create posts with text, visibility, and attachments.
+ *  - Retrieve a user’s posts and feed posts.
+ *  - Load individual posts with comments and media.
+ *  - Update and delete posts with permission checks.
+ *  - Manage comments and post likes.
+ *
+ *  FUNCTIONS:
+ *  - createPost(req, res):
+ *    Creates a new post with optional file attachments.
+ *
+ *  - getMyPosts(req, res):
+ *    Retrieves all posts created by the authenticated user.
+ *
+ *  - getFeedPosts(req, res):
+ *    Retrieves feed posts based on visibility and friendships.
+ *
+ *  - getPostById(req, res):
+ *    Retrieves a single post with attachments and comments.
+ *
+ *  - deletePost(req, res):
+ *    Deletes a post owned by the authenticated user.
+ *
+ *  - updatePost(req, res):
+ *    Updates the text content of a user’s post.
+ *
+ *  - setPostVisibility(req, res):
+ *    Updates a post’s visibility setting.
+ *
+ *  - addCommentToPost(req, res):
+ *    Adds a comment to a post.
+ *
+ *  - deleteCommentFromPost(req, res):
+ *    Deletes a comment from a post.
+ *
+ *  - toggleLike(req, res):
+ *    Adds or removes a like on a post for the user.
+ *
+ *  ASSUMPTIONS:
+ *  - The user is authenticated.
+ *  - Users may only modify their own posts.
+ *  - Visibility rules are enforced server-side.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { db } from "../db.js";
 
 export const createPost = async (req, res) => {

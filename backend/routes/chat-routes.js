@@ -1,3 +1,57 @@
+/** ABSTRACT: chat-routes.js
+ *
+ *  DESCRIPTION:
+ *  Defines all chat-related routes for the application.
+ *  Handles both 1:1 messaging and group chat functionality.
+ *  All routes are protected by `authMiddleware` to ensure only authenticated users can access chat features.
+ *
+ *  RESPONSIBILITIES:
+ *  - 1:1 Chat:
+ *      - Start a conversation by username
+ *      - Send text, image, or video messages to another user
+ *      - Retrieve messages by conversation ID or by username
+ *      - Edit or delete messages
+ *      - Mark messages as read
+ *      - Delete entire conversations
+ *  - Group Chat:
+ *      - Create a new group chat
+ *      - Send text, image, or video messages to a group
+ *      - Add or remove participants
+ *      - Leave a group
+ *      - Update group name
+ *      - Retrieve participants in a group
+ *  - User Search:
+ *      - Search for friends by username
+ *
+ *  FUNCTIONS/ROUTES:
+ *  - GET '/' : Get all conversations for logged-in user
+ *  - GET '/messages/:conversationId' : Get all messages by conversation ID
+ *  - PUT '/mark-message-read/:messageId' : Mark message as read
+ *  - DELETE '/conversation/:id' : Delete conversation
+ *  - PUT '/message/:messageId' : Edit message
+ *  - DELETE '/message/:messageId' : Delete message
+ *  - POST '/group/create' : Create group chat
+ *  - GET '/group/:conversationId/participants' : Get group participants
+ *  - POST '/group/send' : Send text message to group
+ *  - POST '/group/send-image' : Send image to group
+ *  - POST '/group/send-video' : Send video to group
+ *  - POST '/group/:conversationId/add-participants' : Add participants to group
+ *  - DELETE '/group/:conversationId/remove/:username' : Remove participant from group
+ *  - POST '/group/:conversationId/leave' : Leave group
+ *  - PATCH '/group/:conversationId/name' : Update group name
+ *  - POST '/start-by-username' : Start 1:1 conversation
+ *  - GET '/messages-by-username/:username' : Get messages with a user
+ *  - POST '/send-by-username' : Send text message to user
+ *  - POST '/send-image-by-username' : Send image to user
+ *  - POST '/send-video-by-username' : Send video to user
+ *  - GET '/search-for-friends' : Search for friends
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *
+ *  END ABSTRACT
+ **/
+
 import express from 'express';
 import {
     getConversations,

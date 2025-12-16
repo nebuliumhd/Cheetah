@@ -1,3 +1,41 @@
+/** ABSTRACT: PFPOverlayModal.js
+ *
+ *  DESCRIPTION:
+ *  Provides an interactive modal for updating a user’s profile picture. 
+ *  Handles image selection, preview generation, upload progress, fade-in/out 
+ *  animation, and error handling. Validates selected files, generates a local 
+ *  preview, and uploads the image to the backend with an authenticated PATCH request.
+ *
+ *  RESPONSIBILITIES:
+ *  - Display a modal with fade-in and fade-out animations.
+ *  - Allow users to select, preview, validate, and remove image files.
+ *  - Upload the selected image using FormData through an authenticated API call.
+ *  - Handle and display upload errors and loading states.
+ *  - Notify the parent component when the upload succeeds.
+ *  - Close the modal cleanly on user action or after a successful upload.
+ *
+ *  STATE & HOOKS:
+ *  - useState: selectedFile, preview, error, isUploading, showModal
+ *  - useRef: fileInputRef
+ *  - useEffect: synchronize showModal with isOpen prop
+ *
+ *  FUNCTIONS:
+ *  - handleClose(): Closes the modal with fade-out animation.
+ *  - handleFileSelect(e): Validates selected file, generates preview, and sets error messages if invalid.
+ *  - handleUpload(): Sends authenticated PATCH request to update profile picture, handles success/error states.
+ *
+ *  PROPS:
+ *  - isOpen: boolean, whether the modal should be visible
+ *  - onClose: function, callback when modal is closed
+ *  - currentProfile: string, current profile picture path
+ *  - onUploadSuccess: function, callback with new profile picture path after successful upload
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState, useRef, useEffect } from "react";
 import "../../App.css";
 import "./PFPOverlayModal.css";

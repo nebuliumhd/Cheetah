@@ -1,3 +1,32 @@
+/** ABSTRACT: Login.js
+ *  
+ *  DESCRIPTION:
+ *  Defines the user login page component.
+ *  Handles credential input, authentication requests, and session management 
+ *  through context. Provides feedback and redirects users upon successful login.
+ * 
+ *  RESPONSIBILITIES:
+ *  - Collect username and password through a controlled form.
+ *  - Send login credentials to the backend API using a POST request.
+ *  - Handle authentication responses and display success or error messages.
+ *  - Update global authentication state via AuthContext on successful login.
+ *  - Redirect authenticated users to the main page.
+ *  - Prevent logged-in users from accessing the login page.
+ *
+ *  FUNCTIONS:
+ *  - Login(): Main component responsible for rendering the login page and handling
+ *    authentication flow.
+ *  - handleChange(): Updates form state when the user modifies input fields.
+ *  - handleSubmit(): Submits login credentials to the backend, processes the
+ *    authentication response, updates auth state, and redirects on success.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *  PROGRAMMER: Aabaan Samad
+ * 
+ *  END ABSTRACT
+ **/
+
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import "./Login.css";

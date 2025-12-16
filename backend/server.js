@@ -1,3 +1,35 @@
+/** ABSTRACT: server.js
+ *
+ *  DESCRIPTION:
+ *  Initializes and configures the backend Express server for the application.
+ *  Loads core middleware, sets CORS rules, mounts API route modules, and serves
+ *  static frontend build files in production. Supports HTTPS using SSL certificates
+ *  with automatic HTTP -> HTTPS redirection when certificates are available.
+ *
+ *  FUNCTIONS / MAIN BEHAVIORS:
+ *  - `express.json()`               - Parse incoming JSON requests.
+ *  - `cors()`                       - Handle cross-origin requests for allowed origins.
+ *  - Request logger middleware      - Logs every incoming request's method, path, and origin.
+ *  - `express.static('/uploads')`   - Serves uploaded files publicly.
+ *  - Mount API routes:
+ *      • `/api/auth`    -> authRoutes
+ *      • `/api/users`   -> userRoutes
+ *      • `/api/chat`    -> chatRoutes (protected by authMiddleware)
+ *      • `/api/posts`   -> postRoutes (protected by authMiddleware)
+ *  - React frontend serving:
+ *      • Serves `index.html` from `frontend/build` for non-API routes (catch-all)
+ *  - HTTPS setup:
+ *      • `https.createServer()` with `privkey.pem` and `fullchain.pem`
+ *      • Redirect HTTP port 80 to HTTPS port 443
+ *      • Falls back to HTTP server if SSL certificates are missing
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import express from "express";
 import https from "https";
 import http from "http";

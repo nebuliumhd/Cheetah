@@ -1,3 +1,37 @@
+/** ABSTRACT: Feed.js
+ *
+ *  DESCRIPTION:
+ *  The FeedPage.js component retrieves and displays a personalized feed of posts
+ *  for the authenticated user. Upon mounting, it sends an authenticated GET
+ *  request to the backend to fetch posts from followed users and stores the
+ *  results in component state. It renders each post using the PostContainer
+ *  component and updates the feed dynamically when posts are deleted or
+ *  modified. The component also provides user feedback when the feed is empty.
+ *
+ *  RESPONSIBILITIES:
+ *  - Fetch the user’s feed posts from the backend API on component load.
+ *  - Store and manage post data within the local component state.
+ *  - Display individual posts using the PostContainer component.
+ *  - Remove a post from the feed when it is deleted.
+ *  - Optionally trigger a feed refresh when a post is edited.
+ *  - Show a fallback message when no posts are available.
+ *
+ *  FUNCTIONS:
+ *  - FeedPage(): Main component responsible for loading and displaying the
+ *    user’s post feed.
+ *  - fetchFeed(): Sends an authenticated request to retrieve feed posts from
+ *    the backend API and updates component state. (defined inside useEffect)
+ *  - handlePostDeleted(postId): Removes a deleted post from local state so
+ *    the UI updates immediately.
+ *  - handlePostUpdated(): Placeholder handler for responding to post edits
+ *    or triggering a feed refresh.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useEffect, useState } from "react";
 import "../App.css";
 import "./Feed.css";

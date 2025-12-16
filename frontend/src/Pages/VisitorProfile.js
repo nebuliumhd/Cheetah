@@ -1,3 +1,29 @@
+/** ABSTRACT: VisitorProfile.js
+ *  
+ *  DESCRIPTION:
+ *  Defines the visitor-facing user profile page component.
+ *  Displays public profile information and posts based on a username from the URL.
+ * 
+ *  RESPONSIBILITIES:
+ *  - Retrieve the target username from route parameters.
+ *  - Fetch and display the selected user's profile information.
+ *  - Fetch and display posts created by the selected user.
+ *  - Determine whether the profile belongs to the currently logged-in user.
+ *  - Provide navigation to edit the profile when viewing one’s own account.
+ *  - Handle loading, error, and empty-state UI scenarios.
+ * 
+ *  FUNCTIONS:
+ *  - VisitorProfile(): Main component managing profile display, posts, and state.
+ *  - fetchProfile(): Retrieves the user's profile information and posts from the backend API.
+ *  - handlePostDeleted(postId): Removes a post from the displayed posts state when deleted.
+ *  - handlePostUpdated(): Placeholder function to refresh posts after updates.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ * 
+ *  END ABSTRACT
+ **/
+
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";

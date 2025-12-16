@@ -1,3 +1,66 @@
+/** ABSTRACT: MessageInput.js
+ *
+ *  DESCRIPTION:
+ *  Provides an interactive input component for sending messages in a chat interface.
+ *  Supports text messages, multiple image/video attachments, previews, validation,
+ *  and error handling. Integrates with backend API endpoints to send messages and
+ *  media securely for both group and 1:1 conversations.
+ *
+ *  RESPONSIBILITIES:
+ *  - Capture and manage text input for messages.
+ *  - Allow users to select multiple image and video files with size/type validation.
+ *  - Display previews of selected images/videos with the ability to remove individually or all.
+ *  - Send text, images, and videos via API calls with authentication headers.
+ *  - Display error messages for invalid files, oversized media, or network failures.
+ *  - Clear input fields and selected media after successful send.
+ *  - Trigger parent callbacks (onMessageSent) to refresh the chat UI after sending.
+ *
+ *  FUNCTIONS:
+ *  - MessageInput(props):
+ *      Main component function; manages state, renders UI, handles user interaction.
+ *
+ *  - encodeTextToBytes(text):
+ *      Encodes a text string into a UTF-8 byte array for sending via API.
+ *
+ *  - handleMediaSelect(event):
+ *      Handles selection of image/video files, validates size/type,
+ *      generates previews, and updates component state.
+ *
+ *  - handleRemoveImage(imageId):
+ *      Removes a selected image from state by ID.
+ *
+ *  - handleRemoveVideo(videoId):
+ *      Removes a selected video from state by ID and revokes its preview URL.
+ *
+ *  - handleRemoveAllMedia():
+ *      Clears all selected images and videos and resets input fields.
+ *
+ *  - handleSend():
+ *      Sends text, image, and video messages to the backend API.
+ *      Handles both group and 1:1 conversations.
+ *      Performs optimistic UI updates and restores media/text on failure.
+ *
+ *  HOOKS / STATE:
+ *  - useState(text, selectedImages, selectedVideos, errorMessage, showError, isSending)
+ *      Manages component state for text input, media files, errors, and send status.
+ *
+ *  - useRef(imageInputRef, videoInputRef)
+ *      References file input DOM elements for programmatic clicks and reset.
+ *
+ *  - useEffect()
+ *      Handles automatic display and hiding of error messages.
+ *
+ *  ASSUMPTIONS:
+ *  - The user is authenticated and a valid token is stored in localStorage.
+ *  - The parent component provides a valid onMessageSent callback.
+ *  - The conversation object contains `id`, `is_group`, and `other_user_username` as applicable.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState, useRef, useEffect } from "react";
 import "./MessageInput.css";
 

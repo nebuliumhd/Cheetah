@@ -1,3 +1,44 @@
+/** ABSTRACT: CreatePostForm.js
+ *
+ *  DESCRIPTION:
+ *  Provides a form for creating new posts with text content, multiple image attachments,
+ *  visibility options, previews, and secure backend submission. Handles form validation,
+ *  loading states, error handling, and notifies parent components when a post is created.
+ *
+ *  RESPONSIBILITIES:
+ *  - Manage form state for post text, attached files, previews, visibility, and loading.
+ *  - Generate client-side previews for uploaded image files.
+ *  - Validate that either text or at least one file is included before submission.
+ *  - Build and submit FormData objects to the backend API with JWT authorization.
+ *  - Reset form state after successful submission.
+ *  - Notify parent components via onPostCreated callback.
+ *  - Handle and display errors for failed post creation.
+ *
+ *  FUNCTIONS:
+ *  - CreatePostForm(props):
+ *      Main component function; manages state, renders form UI, handles user input and submission.
+ *
+ *  - handleFileChange(event):
+ *      Handles image file selection, updates files state, and generates preview URLs.
+ *
+ *  - handleSubmit(event):
+ *      Validates form, constructs FormData with text and attachments, sends POST request
+ *      to backend, handles success/failure, resets form, and triggers onPostCreated callback.
+ *
+ *  HOOKS / STATE:
+ *  - useState(text, files, preview, loading, visibility)
+ *      Manages the post content, selected files, preview URLs, loading status, and post visibility.
+ *
+ *  ASSUMPTIONS:
+ *  - The user is authenticated and has a valid token stored in localStorage.
+ *  - onPostCreated callback is provided by the parent component to refresh UI.
+ *
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ *
+ *  END ABSTRACT
+ **/
+
 import { useState } from "react";
 import "../../App.css";
 import "./CreatePostForm.css";

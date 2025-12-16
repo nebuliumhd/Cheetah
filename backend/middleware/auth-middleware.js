@@ -1,3 +1,30 @@
+/** ABSTRACT: auth-middleware.js
+ *  
+ *  DESCRIPTION:
+ *  Provides middleware for authenticating users via JSON Web Tokens (JWT).
+ *  Validates tokens included in the Authorization header and ensures only
+ *  authenticated users can access protected routes.
+ * 
+ *  RESPONSIBILITIES:
+ *  - Verify presence and validity of JWT in request headers.
+ *  - Decode token to extract user ID and username.
+ *  - Attach verified user data to the request object.
+ *  - Reject requests with missing, invalid, or expired tokens.
+ * 
+ *  FUNCTIONS:
+ *  - authMiddleware(req, res, next):
+ *    Validates a JWT and attaches authenticated user data to the request.
+ * 
+ *  ASSUMPTIONS:
+ *  - JWT_SECRET is defined in environment variables.
+ *  - Protected routes apply this middleware before controllers.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Johnathan Garland  
+ * 
+ *  END ABSTRACT
+ **/
+
 import jwt from "jsonwebtoken";
 
 export const authMiddleware = (req, res, next) => {

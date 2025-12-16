@@ -1,3 +1,29 @@
+/** ABSTRACT: UserProfile.js
+ *  
+ *  DESCRIPTION:
+ *  Defines the main user profile page for authenticated users.
+ *  Displays profile information and provides account management options.
+ * 
+ *  RESPONSIBILITIES:
+ *  - Display a personalized greeting and user profile picture.
+ *  - Fetch and display the user’s biography.
+ *  - Allow profile picture updates through a modal interface.
+ *  - Provide account update and deletion functionality.
+ *  - Handle user logout and navigation.
+ * 
+ *  FUNCTIONS:
+ *  - UserProfile(): Main profile component that manages user data,
+ *    profile picture updates, and account actions.
+ *  - fetchUserBio(): Retrieves the logged-in user’s bio from the backend API.
+ *  - handleLogout(): Logs the user out and redirects to the login page.
+ *  - setModalOpen(value): Opens or closes the profile picture modal.
+ * 
+ *  REVISION HISTORY ABSTRACT:
+ *  PROGRAMMER: Aabaan Samad
+ * 
+ *  END ABSTRACT
+ **/
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../App.css";
